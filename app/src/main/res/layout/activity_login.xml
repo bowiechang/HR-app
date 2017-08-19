@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.admin.workerstatus.LoginActivity">
+
+    <EditText
+
+        android:id="@+id/etLoginId"
+        android:maxLines="1"
+        android:layout_width="305dp"
+        android:layout_height="53dp"
+        android:background="@android:color/transparent"
+        android:drawablePadding="8dp"
+        android:gravity="center_vertical"
+        android:drawableLeft="@drawable/accounticon"
+        android:hint="Pleaes enter your full name here"
+        android:inputType="textPersonName"
+        android:padding="10dp"
+        android:textSize="16sp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="175dp"
+        app:layout_constraintHorizontal_bias="0.512"/>
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="304dp"
+        android:layout_height="43dp"
+        android:text="Login"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="239dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        />
+
+</android.support.constraint.ConstraintLayout>

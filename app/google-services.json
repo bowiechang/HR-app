@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1094435239496",
+    "firebase_url": "https://workerstatus-24e0b.firebaseio.com",
+    "project_id": "workerstatus-24e0b",
+    "storage_bucket": "workerstatus-24e0b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1094435239496:android:4b84838a3a078745",
+        "android_client_info": {
+          "package_name": "com.example.admin.workerstatus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1094435239496-coldof2edp08p40rm5e7s625g5a1u9of.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCoxL2BJKCVrURyuauAM6t9Zvk6Kdp8MiQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

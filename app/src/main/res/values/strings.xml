@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">"Worker Status "</string>
+    <string name="take_picture">Take picture for attendance</string>
+</resources>
