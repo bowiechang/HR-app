@@ -3,6 +3,7 @@ package com.example.admin.workerstatus;
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
@@ -32,14 +33,19 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.google.firebase.storage.UploadTask.TaskSnapshot;
@@ -56,18 +62,22 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
+import br.com.safety.locationlistenerhelper.core.LocationTracker;
+
 public class AndroidCameraApi extends AppCompatActivity {
 
     private static final String TAG = "AndroidCameraApi";
     private Button takePictureButton;
     private TextureView textureView;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
+
     private String cameraId;
     protected CameraDevice cameraDevice;
     protected CameraCaptureSession cameraCaptureSessions;
@@ -80,26 +90,55 @@ public class AndroidCameraApi extends AppCompatActivity {
     private boolean mFlashSupported;
     private Handler mBackgroundHandler;
     private HandlerThread mBackgroundThread;
-    private StorageReference storageReference;
+    private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-    private FirebaseUser firebaseUser;
-    private String name;
+    private FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+    private String mc2;
+    private CheckIn checkIn;
+
+    private Calendar c = Calendar.getInstance();
+    SimpleDateFormat dateformat = new SimpleDateFormat("dd-MM-yyyy");
+    SimpleDateFormat timeformat = new SimpleDateFormat("hh:mm aaa");
+    private String todayDate = dateformat.format(c.getTime());
+    private String time = timeformat.format(c.getTime());
+
+    private String[] split = firebaseUser.getEmail().split("@");
+    private String name = split[0];
+
+    private DatabaseReference dbrefCheckIn = FirebaseDatabase.getInstance().getReference().child("CheckIns");
+
+    private ArrayList<String> arrayList = new ArrayList<>();
+
+    private LocationTracker locationTracker = new LocationTracker("my.action");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_android_camera_api);
 
-        storageReference = FirebaseStorage.getInstance().getReference();
-        firebaseUser = firebaseAuth.getCurrentUser();
+        Intent intent = getIntent();
+        if( getIntent().getExtras() != null)
+        {
+            String mc = intent.getStringExtra("mc");
+            if (mc.equals("mc")) {
+                mc2 = "mc";
+                checkIn = new CheckIn(name, time, todayDate, "on MC", false);
+            }
+            else{
+                mc2 = "no mc";
+                checkIn = new CheckIn(name, time, todayDate, "working", false);
+            }
+        }
 
-        String[] split = firebaseUser.getEmail().split("@");
-        name = split[0];
-
+        TextView tvSmile = (TextView) findViewById(R.id.tvSmile);
         textureView = (TextureView) findViewById(R.id.texture);
         assert textureView != null;
         textureView.setSurfaceTextureListener(textureListener);
         takePictureButton = (Button) findViewById(R.id.btn_takepicture);
+        if(mc2.equals("mc")){
+            takePictureButton.setText("Take picture of MC");
+            tvSmile.setText("Please take a clear image of the MC");
+        }
         assert takePictureButton != null;
         takePictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,7 +146,9 @@ public class AndroidCameraApi extends AppCompatActivity {
                 takePicture();
             }
         });
+
     }
+
 
     TextureView.SurfaceTextureListener textureListener = new TextureView.SurfaceTextureListener() {
         @Override
@@ -115,14 +156,17 @@ public class AndroidCameraApi extends AppCompatActivity {
             //open your camera here
             openCamera();
         }
+
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
             // Transform you image captured size according to the surface width and height
         }
+
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
             return false;
         }
+
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
         }
@@ -136,14 +180,18 @@ public class AndroidCameraApi extends AppCompatActivity {
             cameraDevice = camera;
             createCameraPreview();
         }
+
         @Override
         public void onDisconnected(CameraDevice camera) {
             cameraDevice.close();
         }
+
         @Override
         public void onError(CameraDevice camera, int error) {
-            cameraDevice.close();
-            cameraDevice = null;
+//            cameraDevice.close();
+//            cameraDevice = null;
+            camera.close();
+            camera = null;
         }
     };
 
@@ -174,7 +222,7 @@ public class AndroidCameraApi extends AppCompatActivity {
     }
 
     protected void takePicture() {
-        if(null == cameraDevice) {
+        if (null == cameraDevice) {
             Log.e(TAG, "cameraDevice is null");
             return;
         }
@@ -198,9 +246,14 @@ public class AndroidCameraApi extends AppCompatActivity {
             final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(reader.getSurface());
             captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, 270);
-            final File file = new File(Environment.getExternalStorageDirectory()+"/image.jpg");
-            uploadImage(file);
+
+            if(mc2.equals("mc")) {
+                captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, 90);
+            }
+            else {
+                captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, 270);
+            }
+            final File file = new File(Environment.getExternalStorageDirectory() + "/image.jpg");
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
@@ -211,6 +264,7 @@ public class AndroidCameraApi extends AppCompatActivity {
                         byte[] bytes = new byte[buffer.capacity()];
                         buffer.get(bytes);
                         save(bytes);
+
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
@@ -221,6 +275,7 @@ public class AndroidCameraApi extends AppCompatActivity {
                         }
                     }
                 }
+
                 private void save(byte[] bytes) throws IOException {
                     OutputStream output = null;
                     try {
@@ -229,8 +284,27 @@ public class AndroidCameraApi extends AppCompatActivity {
                     } finally {
                         if (null != output) {
                             output.close();
+                            uploadImage(file);
+
+                            pushCheckin(new OnGetDataListener() {
+                                @Override
+                                public void onSuccess(ArrayList arrayList) {
+
+                                    if(arrayList.contains(name)){
+                                        System.out.println("name exist do not run push");
+                                    }
+                                    else{
+                                        System.out.println("name not found you can push");
+                                        System.out.println(arrayList.size());
+                                        dbrefCheckIn.push().setValue(checkIn);
+                                        startTracker();
+                                    }
+                                }
+                            });
                         }
                     }
+
+
                 }
             };
             reader.setOnImageAvailableListener(readerListener, mBackgroundHandler);
@@ -252,6 +326,7 @@ public class AndroidCameraApi extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+
                 @Override
                 public void onConfigureFailed(CameraCaptureSession session) {
                 }
@@ -269,7 +344,7 @@ public class AndroidCameraApi extends AppCompatActivity {
             Surface surface = new Surface(texture);
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureRequestBuilder.addTarget(surface);
-            cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback(){
+            cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                     //The camera is already closed
@@ -280,6 +355,7 @@ public class AndroidCameraApi extends AppCompatActivity {
                     cameraCaptureSessions = cameraCaptureSession;
                     updatePreview();
                 }
+
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
                     Toast.makeText(AndroidCameraApi.this, "Configuration change", Toast.LENGTH_SHORT).show();
@@ -294,7 +370,13 @@ public class AndroidCameraApi extends AppCompatActivity {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Log.e(TAG, "is camera open");
         try {
-            cameraId = manager.getCameraIdList()[1];
+            if(mc2.equals("mc")) {
+                cameraId = manager.getCameraIdList()[0];
+            }
+            else{
+                cameraId = manager.getCameraIdList()[1];
+            }
+
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
@@ -312,7 +394,7 @@ public class AndroidCameraApi extends AppCompatActivity {
     }
 
     protected void updatePreview() {
-        if(null == cameraDevice) {
+        if (null == cameraDevice) {
             Log.e(TAG, "updatePreview error, return");
         }
         captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
@@ -350,6 +432,7 @@ public class AndroidCameraApi extends AppCompatActivity {
         super.onResume();
         Log.e(TAG, "onResume");
         startBackgroundThread();
+
         if (textureView.isAvailable()) {
             openCamera();
         } else {
@@ -365,12 +448,14 @@ public class AndroidCameraApi extends AppCompatActivity {
         super.onPause();
     }
 
+
+
     private void uploadImage(File file) {
 
         Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-        String todayDate = df.format(c.getTime());
-        String todayDate2 = todayDate.replace("/", ".");
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+        final String todayDate = df.format(c.getTime());
+
 
         //displaying a progress dialog while upload is going on
         final ProgressDialog progressDialog = new ProgressDialog(this);
@@ -378,7 +463,7 @@ public class AndroidCameraApi extends AppCompatActivity {
         progressDialog.show();
 
         Uri file2 = Uri.fromFile(file.getAbsoluteFile());
-        StorageReference riversRef = storageReference.child(todayDate2 + "/" + name +".jpg");
+        StorageReference riversRef = storageReference.child(todayDate + "/" + name +".jpg");
         riversRef.putFile(file2)
                 .addOnSuccessListener(new OnSuccessListener<TaskSnapshot>() {
                     @Override
@@ -388,7 +473,10 @@ public class AndroidCameraApi extends AppCompatActivity {
                         progressDialog.dismiss();
 
                         //and displaying a success toast
-                        Toast.makeText(getApplicationContext(), "Thank you attendance has been taken!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Thank you, attendance has been taken!", Toast.LENGTH_LONG).show();
+                        Intent i = new Intent(getBaseContext(), MainActivity.class);
+                        i.putExtra("key", "fromCam");
+                        startActivity(i);
                         finish();
                     }
                 })
@@ -402,21 +490,52 @@ public class AndroidCameraApi extends AppCompatActivity {
                         //and displaying error message
                         Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
                     }
-                })
-                .addOnProgressListener(new OnProgressListener<TaskSnapshot>() {
-                    @Override
-                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-
-
-                        //calculating progress percentage
-                        @SuppressWarnings("VisibleForTests") double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
-
-                        //displaying percentage in progress dialog
-                        progressDialog.setMessage("Saving " + ((int) progress) + "%");
-                    }
                 });
+        }
 
+    private void startTracker(){
 
+        locationTracker
+                .setInterval(1000 * 60 * 60)
+                .setGps(true)
+                .setNetWork(false)
+                .start(getBaseContext(), AndroidCameraApi.this);
+
+        System.out.println("called it");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+//        closeCamera();
+    }
+
+    public interface OnGetDataListener {
+        //make new interface for call back
+        void onSuccess(ArrayList arrayList);
+    }
+
+    private void pushCheckin(final OnGetDataListener listener){
+
+        //check if it exists first then push
+        dbrefCheckIn.orderByChild("date").equalTo(todayDate).addValueEventListener(new ValueEventListener() {
+            ArrayList<String> arrayList = new ArrayList<String>();
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+                    CheckIn checkIn = childDataSnapshot.getValue(CheckIn.class);
+                    arrayList.add(checkIn.getName());
+                    System.out.println("in pushCheckin");
+                }
+                listener.onSuccess(arrayList);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
 }

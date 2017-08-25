@@ -8,6 +8,8 @@
 
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
     <uses-feature android:name="android.hardware.camera2.full"/>
 
@@ -31,6 +33,22 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+
+        <receiver
+            android:name=".LocationReceiver">
+            <intent-filter>
+                <action android:name="my.action"/>
+            </intent-filter>
+        </receiver>
+
+        <activity android:name=".AdminDateActivity">
+        </activity>
+        <activity android:name=".DetailedDateActivity">
+        </activity>
+        <activity android:name=".adminLoginActivity">
+        </activity>
+        <activity android:name=".DetailedCheckinActivity">
         </activity>
     </application>
 

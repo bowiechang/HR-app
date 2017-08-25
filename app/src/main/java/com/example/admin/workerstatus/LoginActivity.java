@@ -8,18 +8,20 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity implements OnClickListener {
 
     private EditText etLoginId;
-
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+    private FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,31 +29,55 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
         setContentView(R.layout.activity_login);
 
         if(firebaseAuth.getCurrentUser() != null){
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
+
+            String[] split = firebaseUser.getEmail().split("@");
+            String name = split[0];
+
+            if(name .equals("admin")){
+                Intent intent = new Intent(this, AdminDateActivity.class);
+                startActivity(intent);
+            }
+            else {
+                Intent intent = new Intent(this, MainActivity.class);
+                startActivity(intent);
+            }
         }
+
+        TextView tvAdmin = (TextView) findViewById(R.id.tvAdmin);
 
         etLoginId = (EditText) findViewById(R.id.etLoginId);
         Button btnLogin = (Button) findViewById(R.id.btnLogin);
 
         btnLogin.setOnClickListener(this);
+        tvAdmin.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
+        switch(v.getId()){
 
-        Toast.makeText(LoginActivity.this, "Please wait a moment", Toast.LENGTH_SHORT).show();
-        login();
+            case R.id.btnLogin:
+
+                Toast.makeText(LoginActivity.this, "Please wait a moment", Toast.LENGTH_SHORT).show();
+                login();
+                break;
+
+            case R.id.tvAdmin:
+                Intent i = new Intent(LoginActivity.this, adminLoginActivity.class);
+                startActivity(i);
+                break;
+        }
 
     }
 
     public void login() {
 
-        String name = etLoginId.getText().toString().trim().toUpperCase() +"@gmail.com";
+        String name = etLoginId.getText().toString().trim().toLowerCase() +"@gmail.com";
+        String editname = name.replace(" ", "");
         String password = "123456";
 
         // use method given by Fb, add listener so it could be track when its done
-        firebaseAuth.signInWithEmailAndPassword(name, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+        firebaseAuth.signInWithEmailAndPassword(editname, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if(task.isSuccessful()){
@@ -65,4 +91,8 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
             }
         });
     }
+
+
+    @Override
+    public void onBackPressed(){}
 }
