@@ -33,12 +33,12 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
             String[] split = firebaseUser.getEmail().split("@");
             String name = split[0];
 
-            if(name .equals("admin")){
-                Intent intent = new Intent(this, AdminDateActivity.class);
+            if(name.equals("admin")){
+                Intent intent = new Intent(this, AdminMainActivity.class);
                 startActivity(intent);
             }
             else {
-                Intent intent = new Intent(this, MainActivity.class);
+                Intent intent = new Intent(this, AttendanceActivity.class);
                 startActivity(intent);
             }
         }
@@ -82,7 +82,7 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if(task.isSuccessful()){
 
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    Intent intent = new Intent(LoginActivity.this, AttendanceActivity.class);
                     startActivity(intent);
                 }
                 else{

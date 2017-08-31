@@ -60,7 +60,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import br.com.safety.locationlistenerhelper.core.LocationTracker;
 
@@ -288,10 +291,23 @@ public class AndroidCameraApi extends AppCompatActivity {
 
                             pushCheckin(new OnGetDataListener() {
                                 @Override
-                                public void onSuccess(ArrayList arrayList) {
+                                public void onSuccess(ArrayList arrayList, HashMap hashMap) {
 
                                     if(arrayList.contains(name)){
                                         System.out.println("name exist do not run push");
+
+                                        if(mc2.equals("mc")) {
+                                            Iterator it = hashMap.entrySet().iterator();
+                                            while (it.hasNext()) {
+                                                Map.Entry pair = (Map.Entry) it.next();
+                                                if(pair.getKey().equals(name)){
+                                                    String key = pair.getValue().toString();
+
+                                                    dbrefCheckIn.child(key).setValue(checkIn);
+                                                }
+                                                break;
+                                            }
+                                        }
                                     }
                                     else{
                                         System.out.println("name not found you can push");
@@ -474,7 +490,7 @@ public class AndroidCameraApi extends AppCompatActivity {
 
                         //and displaying a success toast
                         Toast.makeText(getApplicationContext(), "Thank you, attendance has been taken!", Toast.LENGTH_LONG).show();
-                        Intent i = new Intent(getBaseContext(), MainActivity.class);
+                        Intent i = new Intent(getBaseContext(), AttendanceActivity.class);
                         i.putExtra("key", "fromCam");
                         startActivity(i);
                         finish();
@@ -512,7 +528,7 @@ public class AndroidCameraApi extends AppCompatActivity {
 
     public interface OnGetDataListener {
         //make new interface for call back
-        void onSuccess(ArrayList arrayList);
+        void onSuccess(ArrayList arrayList, HashMap hashMap);
     }
 
     private void pushCheckin(final OnGetDataListener listener){
@@ -520,15 +536,17 @@ public class AndroidCameraApi extends AppCompatActivity {
         //check if it exists first then push
         dbrefCheckIn.orderByChild("date").equalTo(todayDate).addValueEventListener(new ValueEventListener() {
             ArrayList<String> arrayList = new ArrayList<String>();
+            HashMap<String, String> hashMap = new HashMap<>();
 
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
                     CheckIn checkIn = childDataSnapshot.getValue(CheckIn.class);
                     arrayList.add(checkIn.getName());
+                    hashMap.put(checkIn.getName(), childDataSnapshot.getKey());
                     System.out.println("in pushCheckin");
                 }
-                listener.onSuccess(arrayList);
+                listener.onSuccess(arrayList, hashMap);
             }
 
             @Override

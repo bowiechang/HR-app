@@ -5,6 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background"
     tools:context="com.example.admin.workerstatus.DetailedDateActivity">
 
     <android.support.design.widget.AppBarLayout
@@ -66,6 +67,7 @@
         android:layout_marginLeft="8dp"
         android:layout_marginRight="59dp"
         android:text="unchecked"
+        android:textAllCaps="true"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintHorizontal_bias="0.65"
@@ -78,7 +80,7 @@
 
     <Button
         android:id="@+id/btnCheck"
-        android:layout_width="325dp"
+        android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginBottom="8dp"
         android:layout_marginTop="8dp"
@@ -88,11 +90,13 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@id/MyAppbar"
-        app:layout_constraintVertical_bias="0.984"/>
+        app:layout_constraintVertical_bias="0.984"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv"
-        android:layout_width="306dp"
+        android:layout_width="match_parent"
         android:layout_height="328dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
@@ -101,6 +105,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_weight="1"
+        android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

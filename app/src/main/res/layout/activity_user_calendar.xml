@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                        xmlns:app="http://schemas.android.com/apk/res-auto"
+                                        xmlns:tools="http://schemas.android.com/tools"
+                                        android:id="@+id/drawerLayout"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        android:fitsSystemWindows="true">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto"
+                  xmlns:tools="http://schemas.android.com/tools"
+                  android:id="@+id/activity_main"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:orientation="vertical"
+                  tools:context="com.example.admin.workerstatus.AdminMainActivity">
+
+        <com.darwindeveloper.onecalendar.views.OneCalendarView
+            android:id="@+id/oneCalendar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:backgroundColorDaysOfAnotherMonth="@color/colorPrimary"
+            app:backgroundColorDaysOfMonth="#53c0c0c1"
+            app:backgroundColorSelectedDay="#d2d2d2"
+            app:currentDayBackgroundColor="#53c0c0c1"
+            app:calendarBackgroundColor="@color/colorPrimary"
+            app:calendarLanguage="EN"
+            app:mainBackgroundColor="@color/colorPrimary"
+            app:textColorDaysOfAnotherMonth="#fff"
+            app:textColorDaysOfMonth="#fff"
+            app:textColorMonthAndYear="@color/colorPrimary"
+            app:textColorSelectedDay="@color/colorAccent"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/oneCalendar"
+            android:layout_alignParentBottom="true">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            </android.support.v7.widget.RecyclerView>
+
+
+        </LinearLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fabSize="mini"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:layout_margin="10dp"
+            android:src="@drawable/draweropen"
+            android:clickable="true"/>
+
+    </RelativeLayout>
+
+    <com.heinrichreimersoftware.materialdrawer.DrawerView
+        android:id="@+id/drawer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true" />
+
+</android.support.v4.widget.DrawerLayout>

@@ -1,11 +1,16 @@
 package com.example.admin.workerstatus;
 
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.AppBarLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -28,10 +33,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
+
 public class DetailedCheckinActivity extends AppCompatActivity implements OnClickListener {
 
-    private String name, date, checkin, status, flag, location;
-    private Button btnFlag;
+    private String name, date, checkin, status, flag, location, uri2;
+    private Button btnFlag, btnDLImage;
     private ImageView imageView;
     private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
     private DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("CheckIns");
@@ -42,7 +49,7 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detailed_checkin);
-
+        
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
         if (extras != null) {
@@ -140,7 +147,7 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
             @Override
             public void onSuccess(Uri uri) {
                 Log.d("success uri", uri.toString());
-
+                uri2 = uri.toString();
                 // Load the image using Glide
                 Glide.with(DetailedCheckinActivity.this)
                         .load(uri.toString())
@@ -178,13 +185,28 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         TextView tvLocation = (TextView)findViewById(R.id.tvLocation);
         TextView tvCheckin = (TextView)findViewById(R.id.tvCheckin);
         TextView tvFlag = (TextView)findViewById(R.id.tvFlag);
+        ConstraintLayout constraintLayout = (ConstraintLayout)findViewById(R.id.detailed_checkin_activity);
+
         imageView = (ImageView) findViewById(R.id.iv);
         btnFlag = (Button)findViewById(R.id.btnFlag);
+        btnDLImage = (Button)findViewById(R.id.btnDLImage);
 
         final RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.spinnerkitloader);
         btnFlag.setVisibility(View.INVISIBLE);
+        btnDLImage.setVisibility(View.INVISIBLE);
         toolbar.setVisibility(View.INVISIBLE);
         appBarLayout.setVisibility(View.INVISIBLE);
+
+        int colorflag = ContextCompat.getColor(DetailedCheckinActivity.this, R.color.flag);
+        int colorunflag = ContextCompat.getColor(DetailedCheckinActivity.this, R.color.background);
+        int checked = ContextCompat.getColor(DetailedCheckinActivity.this, R.color.checked2);
+
+        if(flag.equals("true")){
+            constraintLayout.setBackgroundColor(colorflag);
+        }
+        else{
+            constraintLayout.setBackgroundColor(colorunflag);
+        }
 
         final Handler handler = new Handler();
         new Thread(new Runnable() {
@@ -202,6 +224,7 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
                         appBarLayout.setVisibility(View.VISIBLE);
                         toolbar.setVisibility(View.VISIBLE);
                         btnFlag.setVisibility(View.VISIBLE);
+                        btnDLImage.setVisibility(View.VISIBLE);
                     }
                 });
             }
@@ -215,8 +238,19 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         tvFlag.setText(String.format("Flag: %s", flag));
 
         btnFlag.setOnClickListener(this);
+        btnDLImage.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                downloadFile(uri2);
+            }
+        });
+
         if(flag.equals("true")){
             btnFlag.setText("revert");
+            btnFlag.setBackgroundColor(checked);
+        }
+        else{
+            btnFlag.setBackgroundColor(colorflag);
         }
         readImage(date, name);
     }
@@ -228,5 +262,77 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         if(listener != null) {
             databaseReference.removeEventListener(listener);
         }
+    }
+
+    private void downloadFile(String uri) {
+        if(isFileExists()){
+            File folder1 = new File(Environment.getExternalStorageDirectory().getPath() + "/Download/image.jpg");
+            folder1.delete();
+        }
+
+        String directory_path = Environment.getExternalStorageDirectory().getPath() + "/Download/";
+        File direct = new File(directory_path);
+
+        direct.mkdirs();
+
+        DownloadManager mgr = (DownloadManager) DetailedCheckinActivity.this.getSystemService(Context.DOWNLOAD_SERVICE);
+
+        Uri downloadUri = Uri.parse(uri);
+        DownloadManager.Request request = new DownloadManager.Request(
+                downloadUri);
+
+        request.setAllowedNetworkTypes(
+                DownloadManager.Request.NETWORK_WIFI
+                        | DownloadManager.Request.NETWORK_MOBILE)
+                .setAllowedOverRoaming(false).setTitle("Downloading and exporting")
+                .setDescription("Ready in a bit")
+                .setDestinationInExternalPublicDir("/Download", "image.jpg");
+
+        mgr.enqueue(request);
+
+
+        //emailing
+        final Handler handler = new Handler();
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    Thread.sleep(2000);
+                } catch (Exception e) {
+                } // Just catch the InterruptedException
+
+                // Now we use the Handler to post back to the main thread
+                handler.post(new Runnable() {
+                    public void run() {
+
+                        if(isFileExists()) {
+                            String filename="image.jpg";
+                            File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/", filename);
+                            Uri path = Uri.fromFile(filelocation);
+                            Intent emailIntent = new Intent(Intent.ACTION_SEND);
+// set the type to 'email'
+                            emailIntent .setType("vnd.android.cursor.dir/email");
+                            String to[] = {"bezbowie@gmail.com"};
+                            emailIntent .putExtra(Intent.EXTRA_EMAIL, to);
+// the attachment
+                            emailIntent .putExtra(Intent.EXTRA_STREAM, path);
+// the mail subject
+                            emailIntent .putExtra(Intent.EXTRA_SUBJECT, name + " on " + date );
+                            startActivity(Intent.createChooser(emailIntent , "Send email..."));
+                        }
+
+                    }
+                });
+            }
+        }).start();
+
+
+
+
+
+    }
+
+    private boolean isFileExists(){
+        File folder1 = new File(Environment.getExternalStorageDirectory().getPath() + "/Download/image.jpg");
+        return folder1.exists();
     }
 }

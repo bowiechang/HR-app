@@ -7,6 +7,7 @@ import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -64,18 +65,9 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
 
     @Override
     public void onBindViewHolder(final DetailedDateHolder holder, final int position) {
-        holder.tvName.setText(String.format("name: %s", list.get(position).getName()));
-        holder.tvCheckin.setText(String.format("clock in: %s", list.get(position).getCheckin()));
-
-        if(list.get(position).getMc().equalsIgnoreCase("on mc")){
-            holder.ivStatus.setImageResource(R.drawable.accountsick2);
-        }
-        else if(list.get(position).getFlag().equals(true)){
-            holder.ivStatus.setImageResource(R.drawable.accountflag);
-        }
-        else{
-            holder.ivStatus.setImageResource(R.drawable.accountonjob2);
-        }
+        holder.tvName.setText(String.format("Name: %s", list.get(position).getName().toUpperCase()));
+        holder.tvCheckin.setText(String.format("Clock in: %s", list.get(position).getCheckin()));
+        holder.tvStatus.setText(String.format("Status: %s", list.get(position).getMc()));
 
         //reading of latlng and conversion
         date = list.get(position).getDate();
@@ -83,6 +75,12 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
         checkin = list.get(position).getCheckin();
         flag = list.get(position).getFlag().toString();
         status = list.get(position).getMc();
+
+        int colorChecked = ContextCompat.getColor(context, R.color.flag);
+
+        if(flag.equals("true")){
+            holder.itemView.setBackgroundColor(colorChecked);
+        }
 
         final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("LocationTrackings");
         databaseReference.addValueEventListener(new ValueEventListener() {

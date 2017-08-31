@@ -3,4 +3,7 @@
     <string name="take_picture">Take picture for attendance</string>
     <string name="dialogOK">OK</string>
     <string name="cancel">Cancel</string>
+
+    <string name="drawer_open">Menu open</string>
+    <string name="drawer_close">Menu closed</string>
 </resources>

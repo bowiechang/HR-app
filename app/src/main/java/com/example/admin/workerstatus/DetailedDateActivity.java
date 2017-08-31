@@ -1,10 +1,10 @@
 package com.example.admin.workerstatus;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.AppBarLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -34,7 +34,7 @@ public class DetailedDateActivity extends AppCompatActivity implements OnClickLi
     private LayoutManager layoutManager;
     private List<CheckIn> list;
     private Button btn;
-    private TextView tvDate, tvStatus;
+    private TextView tvDate, tvStatus, tv4;
     private DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("CheckIns");
     private DatabaseReference databaseReference2 = FirebaseDatabase.getInstance().getReference().child("DateStatus");
 
@@ -51,12 +51,6 @@ public class DetailedDateActivity extends AppCompatActivity implements OnClickLi
         }
 
         init();
-        getDateAndStatus();
-        read();
-
-
-
-
     }
 
     private void getList(DataSnapshot dataSnapshot){
@@ -78,7 +72,7 @@ public class DetailedDateActivity extends AppCompatActivity implements OnClickLi
                     databaseReference.child(key).setValue(status);
                     Toast.makeText(DetailedDateActivity.this, "Attendance status has been set to approved!", Toast.LENGTH_SHORT).show();
 
-                    Intent i = new Intent(DetailedDateActivity.this, AdminDateActivity.class);
+                    Intent i = new Intent(DetailedDateActivity.this, AdminMainActivity.class);
                     startActivity(i);
                 }
 
@@ -113,7 +107,7 @@ public class DetailedDateActivity extends AppCompatActivity implements OnClickLi
                     databaseReference.child(key).setValue(status);
                     Toast.makeText(DetailedDateActivity.this, "Attendance status has been unchecked!", Toast.LENGTH_SHORT).show();
 
-                    Intent i = new Intent(DetailedDateActivity.this, AdminDateActivity.class);
+                    Intent i = new Intent(DetailedDateActivity.this, AdminMainActivity.class);
                     startActivity(i);
                 }
 
@@ -142,7 +136,8 @@ public class DetailedDateActivity extends AppCompatActivity implements OnClickLi
 
     @Override
     public boolean onSupportNavigateUp() {
-        finish();
+        Intent i = new Intent(DetailedDateActivity.this, AdminMainActivity.class);
+        startActivity(i);
         return true;
     }
 
@@ -157,6 +152,7 @@ public class DetailedDateActivity extends AppCompatActivity implements OnClickLi
 
         tvDate = (TextView)findViewById(R.id.tvDate);
         tvStatus = (TextView)findViewById(R.id.tvStatus);
+        tv4 = (TextView)findViewById(R.id.textView4);
         btn = (Button)findViewById(R.id.btnCheck);
         btn.setOnClickListener(this);
 
@@ -181,6 +177,8 @@ public class DetailedDateActivity extends AppCompatActivity implements OnClickLi
                         appBarLayout.setVisibility(View.VISIBLE);
                         toolbar.setVisibility(View.VISIBLE);
                         btn.setVisibility(View.VISIBLE);
+                        read();
+                        getDateAndStatus();
                     }
                 });
             }
@@ -207,12 +205,18 @@ public class DetailedDateActivity extends AppCompatActivity implements OnClickLi
                             tvDate.setText(date);
                             tvStatus.setText(status2);
 
+                            int colorChecked = ContextCompat.getColor(DetailedDateActivity.this ,R.color.checked);
+                            int colorChecked2 = ContextCompat.getColor(DetailedDateActivity.this ,R.color.checked2);
+                            int colorUnchecked = ContextCompat.getColor(DetailedDateActivity.this,R.color.unchecked);
+
                             if(status2.equals("Checked")){
                                 btn.setText("Uncheck attendance");
-                                tvStatus.setTextColor(Color.GREEN);
+                                btn.setBackgroundColor(colorUnchecked);
+                                tvStatus.setTextColor(colorChecked2);
                             }
                             else{
-                                tvStatus.setTextColor(Color.RED);
+                                tvStatus.setTextColor(colorUnchecked);
+                                btn.setBackgroundColor(colorChecked);
                             }
                         }
                     }
@@ -236,7 +240,7 @@ public class DetailedDateActivity extends AppCompatActivity implements OnClickLi
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     CheckIn checkIn = snapshot.getValue(CheckIn.class);
                     if(checkIn != null) {
-                        if(checkIn.getDate().equals(date)) {
+                        if(checkIn.getDate().equals(datekey)) {
                             list.add(checkIn);
                             getList(snapshot);
                         }
@@ -244,7 +248,11 @@ public class DetailedDateActivity extends AppCompatActivity implements OnClickLi
                 }
 
                 if(list.isEmpty()){
-                    Toast.makeText(DetailedDateActivity.this, "There is working days", Toast.LENGTH_SHORT).show();
+
+                    tvDate.setText("There is no working records on this day");
+                    tv4.setVisibility(View.GONE);
+                    tvStatus.setVisibility(View.GONE);
+                    btn.setVisibility(View.GONE);
                 }
             }
 

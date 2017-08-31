@@ -51,7 +51,7 @@ public class adminLoginActivity extends AppCompatActivity implements OnClickList
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if(task.isSuccessful()){
 
-                    Intent intent = new Intent(adminLoginActivity.this, AdminDateActivity.class);
+                    Intent intent = new Intent(adminLoginActivity.this, AdminMainActivity.class);
                     startActivity(intent);
                     Toast.makeText(adminLoginActivity.this, "Validating....", Toast.LENGTH_SHORT).show();
                 }
