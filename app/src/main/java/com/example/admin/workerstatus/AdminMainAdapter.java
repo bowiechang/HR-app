@@ -88,7 +88,7 @@ public class AdminMainAdapter extends RecyclerView.Adapter<AdminMainHolder> {
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 int colorChecked = ContextCompat.getColor(context ,R.color.checked);
-                int colorUnchecked = ContextCompat.getColor(context,R.color.unchecked);
+                int colorUnchecked = ContextCompat.getColor(context,R.color.uncheckedyellow);
 
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Status status = snapshot.getValue(Status.class);
@@ -103,7 +103,6 @@ public class AdminMainAdapter extends RecyclerView.Adapter<AdminMainHolder> {
                                 System.out.println("unchecked");
                             }
                         }
-
                     }
                 }
             }

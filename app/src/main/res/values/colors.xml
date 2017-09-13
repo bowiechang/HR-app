@@ -7,6 +7,7 @@
     <color name="white">#ffffff</color>
     <color name="grey">#C0C0C0</color>
     <color name="unchecked">#E79596</color>
+    <color name="uncheckedyellow">#FFEF99</color>
     <color name="checked">#93C166</color>
     <color name="checked2">#5c9154</color>
     <color name="background">#c5cae9</color>

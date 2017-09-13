@@ -273,6 +273,9 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
         btnMc.setVisibility(View.INVISIBLE);
         fab.setVisibility(View.INVISIBLE);
 
+        final ImageView imageView = (ImageView) findViewById(R.id.iv);
+        imageView.setVisibility(View.GONE);
+
         final Handler handler = new Handler();
         new Thread(new Runnable() {
             public void run() {
@@ -289,6 +292,7 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
                         btnAttendance.setVisibility(View.VISIBLE);
                         btnMc.setVisibility(View.VISIBLE);
                         fab.setVisibility(View.VISIBLE);
+                        imageView.setVisibility(View.VISIBLE);
                     }
                 });
             }
@@ -299,8 +303,6 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
             tvName.setText(split[0]);
         }
 
-        final ImageView imageView = (ImageView) findViewById(R.id.iv);
-        imageView.setVisibility(View.GONE);
 
         final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("CheckIns");
         databaseReference.addValueEventListener(new ValueEventListener() {
@@ -329,7 +331,7 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
 
                             }
 
-                            imageView.setVisibility(View.VISIBLE);
+
                             //reading of image
                             final StorageReference pathref = storageReference.child(todayDate +"/" + split[0]+".jpg");
                             pathref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
@@ -337,10 +339,11 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
                                 public void onSuccess(Uri uri) {
                                     Log.d("success uri", uri.toString());
 
-                                    // Load the image using Glide
-                                    Glide.with(AttendanceActivity.this)
-                                            .load(uri.toString())
-                                            .into(imageView);
+                                        // Load the image using Glide
+                                        Glide.with(AttendanceActivity.this)
+                                                .load(uri.toString())
+                                                .into(imageView);
+
 
                                 }
 

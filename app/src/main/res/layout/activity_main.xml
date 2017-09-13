@@ -44,7 +44,7 @@
 
             <TextView
                 android:id="@+id/textView3"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="466dp"
                 android:text="Remember to report your attendance whenever you are ready!"
@@ -54,7 +54,9 @@
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginLeft="56dp"
-                android:layout_marginRight="56dp"/>
+                android:layout_marginRight="56dp"
+                android:layout_marginStart="56dp"
+                android:layout_marginEnd="56dp"/>
 
             <Button
                 android:id="@+id/btnAttendance"
@@ -94,15 +96,17 @@
                 android:layout_height="227dp"
                 android:layout_marginTop="88dp"
                 android:background="@color/background"
+                android:src="@drawable/attendancecam"
                 android:scaleType="centerInside"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/spinnerkitloader"
-                />
+                android:layout_marginLeft="32dp"
+                android:layout_marginRight="32dp"/>
 
             <TextView
                 android:id="@+id/tvStatus"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="32dp"
                 android:layout_marginRight="32dp"
@@ -115,7 +119,8 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:layout_editor_absoluteY="70dp"/>
+                android:layout_marginStart="32dp"
+                android:layout_marginEnd="32dp"/>
 
             <RelativeLayout
                 android:id="@+id/spinnerkitloader"
