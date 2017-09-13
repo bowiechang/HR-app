@@ -99,8 +99,6 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
             Intent intent = new Intent(this, AndroidCameraApi.class);
             intent.putExtra("mc", "no mc");
             startActivity(intent);
-
-
         }
         else if(v.getId() == R.id.btnMc){
             Intent intent = new Intent(this, AndroidCameraApi.class);
@@ -279,6 +277,7 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
         final RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.spinnerkitloader);
         btnAttendance.setVisibility(View.INVISIBLE);
         btnMc.setVisibility(View.INVISIBLE);
+        btnCheckOut.setVisibility(View.INVISIBLE);
         fab.setVisibility(View.INVISIBLE);
 
         final ImageView imageView = (ImageView) findViewById(R.id.iv);
@@ -299,8 +298,10 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
                         relativeLayout.setVisibility(View.INVISIBLE);
                         btnAttendance.setVisibility(View.VISIBLE);
                         btnMc.setVisibility(View.VISIBLE);
+                        btnCheckOut.setVisibility(View.VISIBLE);
                         fab.setVisibility(View.VISIBLE);
                         imageView.setVisibility(View.VISIBLE);
+
                     }
                 });
             }
@@ -321,24 +322,37 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
                     if(checkIn != null) {
                         if(checkIn.getDate().equals(todayDate) && checkIn.getName().equals(split[0])) {
 
+                            String checkout = (String)snapshot.child("checkout").getValue();
+                            int colorChecked = ContextCompat.getColor(AttendanceActivity.this,R.color.checked2);
+                            int colorBtn = ContextCompat.getColor(AttendanceActivity.this,R.color.colorPrimaryDark);
+
                             //its either on MC or working
                             if(checkIn.getMc().toLowerCase().equals("on mc")){
                                 int colormc = ContextCompat.getColor(AttendanceActivity.this,R.color.colorPrimary);
                                 tvStatus.setText("MC Attendance taken");
                                 tvStatus.setTextColor(colormc);
+
+                                btnAttendance.setBackgroundColor(colorBtn);
+                                btnMc.setBackgroundColor(colorBtn);
+                                btnMc.setText("Retake mc");
+                            }
+                            else if(checkout != null){
+                                tvStatus.setText("Check Out Successful!");
+                                tvStatus.setTextColor(colorBtn);
+
+                                btnAttendance.setBackgroundColor(colorBtn);
+                                btnMc.setBackgroundColor(colorBtn);
+                                btnCheckOut.setBackgroundColor(colorBtn);
+                                btnAttendance.setText("Retake photo");
                             }
                             else{
-                                int colorChecked = ContextCompat.getColor(AttendanceActivity.this,R.color.checked2);
-                                int colorBtn = ContextCompat.getColor(AttendanceActivity.this,R.color.colorPrimaryDark);
                                 tvStatus.setText("Attendance taken!");
                                 tvStatus.setTextColor(colorChecked);
 
                                 btnAttendance.setBackgroundColor(colorBtn);
                                 btnMc.setBackgroundColor(colorBtn);
                                 btnAttendance.setText("Retake photo");
-
                             }
-
 
                             //reading of image
                             final StorageReference pathref = storageReference.child(todayDate +"/" + "checkin-" + split[0]+".jpg");
@@ -361,8 +375,6 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
                                     Log.d("failed uri", "failed: " + e.toString());
                                 }
                             });
-
-
                         }
                     }
                 }

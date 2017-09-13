@@ -57,10 +57,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -335,10 +337,45 @@ public class AndroidCameraApi extends AppCompatActivity {
                                             while (it.hasNext()) {
                                                 Map.Entry pair = (Map.Entry) it.next();
                                                 if(pair.getKey().equals(name)){
-                                                    String key = pair.getValue().toString();
+                                                    final String key = pair.getValue().toString();
 
                                                     dbrefCheckIn.child(key).child("checkout").setValue(time);
                                                     stopTracker();
+
+                                                    //calculate hour
+                                                    dbrefCheckIn.child(key).addValueEventListener(new ValueEventListener() {
+                                                        @Override
+                                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                                            System.out.println("in here 1");
+                                                            CheckIn checkIn = dataSnapshot.getValue(CheckIn.class);
+
+                                                            System.out.println(checkIn.getCheckin() + "time in");
+                                                            System.out.println(time + "time out");
+
+                                                            try {
+                                                                System.out.println("in here 2");
+                                                                SimpleDateFormat format = new SimpleDateFormat("hh:mm aa");
+                                                                Date Date1 = format.parse(checkIn.getCheckin());
+                                                                Date Date2 = format.parse(time);
+                                                                long mills = Date2.getTime() - Date1.getTime();
+                                                                int Hours = (int) (mills/(1000 * 60 * 60));
+                                                                int Mins = (int) (mills/(1000*60)) % 60;
+
+                                                                String diff = Hours + " hours and " + Mins +" minutes"; // updated value every1 second
+                                                                System.out.println("time difference is : " + diff);
+
+                                                                dbrefCheckIn.child(key).child("hours").setValue(diff);
+                                                            } catch (ParseException e) {
+                                                                e.printStackTrace();
+                                                            }
+
+                                                        }
+
+                                                        @Override
+                                                        public void onCancelled(DatabaseError databaseError) {
+
+                                                        }
+                                                    });
                                                 }
                                                 break;
                                             }
