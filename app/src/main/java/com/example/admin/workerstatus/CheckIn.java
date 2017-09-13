@@ -11,15 +11,25 @@ public class CheckIn {
     private String date;
     private String mc;
     private Boolean flag;
+    private String day;
 
     public CheckIn(){}
 
-    public CheckIn(String name, String checkin, String date, String mc, Boolean flag){
+    public CheckIn(String name, String checkin, String date, String mc, Boolean flag, String day){
         this.name = name;
         this.checkin = checkin;
         this.date = date;
         this.mc = mc;
         this.flag = flag;
+        this.day = day;
+    }
+
+    public String getDay() {
+        return day;
+    }
+
+    public void setDay(String day) {
+        this.day = day;
     }
 
     public Boolean getFlag() {

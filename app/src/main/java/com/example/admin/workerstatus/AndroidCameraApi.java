@@ -106,8 +106,10 @@ public class AndroidCameraApi extends AppCompatActivity {
     private Calendar c = Calendar.getInstance();
     SimpleDateFormat dateformat = new SimpleDateFormat("dd-MM-yyyy");
     SimpleDateFormat timeformat = new SimpleDateFormat("hh:mm aaa");
+    SimpleDateFormat dayformat = new SimpleDateFormat("EEEE");
     private String todayDate = dateformat.format(c.getTime());
     private String time = timeformat.format(c.getTime());
+    private String day = dayformat.format(c.getTime());
 
     private String[] split = firebaseUser.getEmail().split("@");
     private String name = split[0];
@@ -136,7 +138,7 @@ public class AndroidCameraApi extends AppCompatActivity {
             if(mc!=null) {
                 if (mc.equals("mc")) {
                     mc2 = "mc";
-                    checkIn = new CheckIn(name, time, todayDate, "on MC", false);
+                    checkIn = new CheckIn(name, time, todayDate, "on MC", false, day);
 
                     takePictureButton.setText("Take picture of MC");
                     tvSmile.setText("Please take a clear image of the MC");
@@ -145,7 +147,7 @@ public class AndroidCameraApi extends AppCompatActivity {
 
                 } else {
                     mc2 = "no mc";
-                    checkIn = new CheckIn(name, time, todayDate, "working", false);
+                    checkIn = new CheckIn(name, time, todayDate, "working", false, day);
 
                     status = "CheckIn";
                 }
