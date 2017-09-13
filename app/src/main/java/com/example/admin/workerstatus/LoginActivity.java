@@ -1,6 +1,7 @@
 package com.example.admin.workerstatus;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -46,6 +47,7 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
         TextView tvAdmin = (TextView) findViewById(R.id.tvAdmin);
 
         etLoginId = (EditText) findViewById(R.id.etLoginId);
+        etLoginId.setRawInputType(Configuration.KEYBOARD_QWERTY);
         Button btnLogin = (Button) findViewById(R.id.btnLogin);
 
         btnLogin.setOnClickListener(this);

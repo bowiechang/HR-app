@@ -107,6 +107,12 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
             intent.putExtra("mc", "mc");
             startActivity(intent);
         }
+
+        else if(v.getId() == R.id.btnCheckout){
+            Intent intent = new Intent(this, AndroidCameraApi.class);
+            intent.putExtra("checkout", "checkout");
+            startActivity(intent);
+        }
     }
 
     @Override
@@ -264,9 +270,11 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
 
         final Button btnAttendance = (Button) findViewById(R.id.btnAttendance);
         final Button btnMc = (Button) findViewById(R.id.btnMc);
+        final Button btnCheckOut = (Button) findViewById(R.id.btnCheckout);
         fab = (FloatingActionButton)findViewById(R.id.fab);
         btnAttendance.setOnClickListener(this);
         btnMc.setOnClickListener(this);
+        btnCheckOut.setOnClickListener(this);
 
         final RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.spinnerkitloader);
         btnAttendance.setVisibility(View.INVISIBLE);
@@ -333,7 +341,7 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
 
 
                             //reading of image
-                            final StorageReference pathref = storageReference.child(todayDate +"/" + split[0]+".jpg");
+                            final StorageReference pathref = storageReference.child(todayDate +"/" + "checkin-" + split[0]+".jpg");
                             pathref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
                                 public void onSuccess(Uri uri) {

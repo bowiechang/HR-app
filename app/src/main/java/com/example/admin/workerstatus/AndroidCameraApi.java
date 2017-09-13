@@ -96,8 +96,9 @@ public class AndroidCameraApi extends AppCompatActivity {
     private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     private FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-    private String mc2;
+    private String mc2 = "nil";
     private CheckIn checkIn;
+    private String status;
 
     private Calendar c = Calendar.getInstance();
     SimpleDateFormat dateformat = new SimpleDateFormat("dd-MM-yyyy");
@@ -119,29 +120,44 @@ public class AndroidCameraApi extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_android_camera_api);
 
-        Intent intent = getIntent();
-        if( getIntent().getExtras() != null)
-        {
-            String mc = intent.getStringExtra("mc");
-            if (mc.equals("mc")) {
-                mc2 = "mc";
-                checkIn = new CheckIn(name, time, todayDate, "on MC", false);
-            }
-            else{
-                mc2 = "no mc";
-                checkIn = new CheckIn(name, time, todayDate, "working", false);
-            }
-        }
-
         TextView tvSmile = (TextView) findViewById(R.id.tvSmile);
         textureView = (TextureView) findViewById(R.id.texture);
         assert textureView != null;
         textureView.setSurfaceTextureListener(textureListener);
         takePictureButton = (Button) findViewById(R.id.btn_takepicture);
-        if(mc2.equals("mc")){
-            takePictureButton.setText("Take picture of MC");
-            tvSmile.setText("Please take a clear image of the MC");
+
+        Intent intent = getIntent();
+        if( getIntent().getExtras() != null)
+        {
+            String mc = intent.getStringExtra("mc");
+            if(mc!=null) {
+                if (mc.equals("mc")) {
+                    mc2 = "mc";
+                    checkIn = new CheckIn(name, time, todayDate, "on MC", false);
+
+                    takePictureButton.setText("Take picture of MC");
+                    tvSmile.setText("Please take a clear image of the MC");
+
+                    status = "CheckIn";
+
+                } else {
+                    mc2 = "no mc";
+                    checkIn = new CheckIn(name, time, todayDate, "working", false);
+
+                    status = "CheckIn";
+                }
+            }
+
+            String checkout = intent.getStringExtra("checkout");
+            if(checkout!=null){
+                if(checkout.equals("checkout")){
+                    takePictureButton.setText("Take picture for check out");
+
+                    status = "CheckOut";
+                }
+            }
         }
+
         assert takePictureButton != null;
         takePictureButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -386,11 +402,12 @@ public class AndroidCameraApi extends AppCompatActivity {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         Log.e(TAG, "is camera open");
         try {
-            if(mc2.equals("mc")) {
-                cameraId = manager.getCameraIdList()[0];
-            }
-            else{
-                cameraId = manager.getCameraIdList()[1];
+            if(mc2!=null) {
+                if (mc2.equals("mc")) {
+                    cameraId = manager.getCameraIdList()[0];
+                } else {
+                    cameraId = manager.getCameraIdList()[1];
+                }
             }
 
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
@@ -468,6 +485,15 @@ public class AndroidCameraApi extends AppCompatActivity {
 
     private void uploadImage(File file) {
 
+        String statuskey = "";
+
+        if(status.equals("CheckIn")){
+            statuskey = "checkin";
+        }
+        else if(status.equals("CheckOut")){
+            statuskey = "checkout";
+        }
+
         Calendar c = Calendar.getInstance();
         SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
         final String todayDate = df.format(c.getTime());
@@ -475,11 +501,11 @@ public class AndroidCameraApi extends AppCompatActivity {
 
         //displaying a progress dialog while upload is going on
         final ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Saving attendance");
+        progressDialog.setTitle("Saving");
         progressDialog.show();
 
         Uri file2 = Uri.fromFile(file.getAbsoluteFile());
-        StorageReference riversRef = storageReference.child(todayDate + "/" + name +".jpg");
+        StorageReference riversRef = storageReference.child(todayDate + "/" + statuskey.concat("-") + name +".jpg");
         riversRef.putFile(file2)
                 .addOnSuccessListener(new OnSuccessListener<TaskSnapshot>() {
                     @Override
