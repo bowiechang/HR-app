@@ -16,6 +16,7 @@ import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.location.Location;
 import android.media.Image;
 import android.media.ImageReader;
 import android.net.Uri;
@@ -65,6 +66,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import br.com.safety.locationlistenerhelper.core.CurrentLocationListener;
+import br.com.safety.locationlistenerhelper.core.CurrentLocationReceiver;
 import br.com.safety.locationlistenerhelper.core.LocationTracker;
 
 public class AndroidCameraApi extends AppCompatActivity {
@@ -324,7 +327,22 @@ public class AndroidCameraApi extends AppCompatActivity {
                                                 break;
                                             }
                                         }
+                                        else if(status.equals("CheckOut")){
+
+                                            Iterator it = hashMap.entrySet().iterator();
+                                            while (it.hasNext()) {
+                                                Map.Entry pair = (Map.Entry) it.next();
+                                                if(pair.getKey().equals(name)){
+                                                    String key = pair.getValue().toString();
+
+                                                    dbrefCheckIn.child(key).child("checkout").setValue(time);
+                                                    stopTracker();
+                                                }
+                                                break;
+                                            }
+                                        }
                                     }
+
                                     else{
                                         System.out.println("name not found you can push");
                                         System.out.println(arrayList.size());
@@ -544,6 +562,30 @@ public class AndroidCameraApi extends AppCompatActivity {
                 .start(getBaseContext(), AndroidCameraApi.this);
 
         System.out.println("called it");
+    }
+
+    private void stopTracker(){
+
+        locationTracker
+//                .setInterval(50000)
+                .setGps(true)
+                .setNetWork(false)
+                 .currentLocation(new CurrentLocationReceiver(new CurrentLocationListener() {
+
+                            @Override
+                            public void onCurrentLocation(Location location) {
+                               Log.d("callback", ":onCurrentLocation" + location.getLongitude());
+                               locationTracker.stopLocationService(getBaseContext());
+                            }
+
+                            @Override
+                            public void onPermissionDiened() {
+                                Log.d("callback", ":onPermissionDiened");
+                                locationTracker.stopLocationService(getBaseContext());
+                            }
+                 }))
+
+                .start(getBaseContext(), this);
     }
 
     @Override
