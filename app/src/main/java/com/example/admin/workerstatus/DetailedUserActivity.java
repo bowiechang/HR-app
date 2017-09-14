@@ -25,10 +25,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import static com.example.admin.workerstatus.R.id.ivOut;
+
 public class DetailedUserActivity extends AppCompatActivity{
 
     private String name, date, uri2;
-    private ImageView imageView, ivFlag;
+    private ImageView imageView, imageView2, ivFlag;
     private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
     private DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("CheckIns");
 
@@ -58,7 +60,11 @@ public class DetailedUserActivity extends AppCompatActivity{
                     if(checkIn != null) {
                         if (checkIn.getDate().equals(date)) {
                             if(checkIn.getName().equals(name)){
-                                listener.onSuccess(checkIn);
+
+                                String timeout = (String) snapshot.child("checkout").getValue();
+                                String hours = (String) snapshot.child("hours").getValue();
+                                System.out.println(timeout + ":timeout");
+                                listener.onSuccess(checkIn, timeout, hours);
                             }
                         }
                     }
@@ -72,7 +78,7 @@ public class DetailedUserActivity extends AppCompatActivity{
         });
 
         //reading of image
-        final StorageReference pathref = storageReference.child(date +"/" + name +".jpg");
+        final StorageReference pathref = storageReference.child(date +"/" + "checkin-" + name +".jpg");
         pathref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri uri) {
@@ -82,6 +88,27 @@ public class DetailedUserActivity extends AppCompatActivity{
                 Glide.with(DetailedUserActivity.this)
                         .load(uri.toString())
                         .into(imageView);
+
+            }
+
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("failed uri", "failed: " + e.toString());
+            }
+        });
+
+        //reading of image
+        final StorageReference pathref2 = storageReference.child(date +"/" + "checkout-" + name +".jpg");
+        pathref2.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                Log.d("success uri", uri.toString());
+                uri2 = uri.toString();
+                // Load the image using Glide
+                Glide.with(DetailedUserActivity.this)
+                        .load(uri.toString())
+                        .into(imageView2);
 
             }
 
@@ -112,8 +139,12 @@ public class DetailedUserActivity extends AppCompatActivity{
         final TextView tvDate = (TextView)findViewById(R.id.tvDate);
         final TextView tvStatus = (TextView)findViewById(R.id.tvStatus);
         final TextView tvCheckin = (TextView)findViewById(R.id.tvCheckin);
+        final TextView tvCheckout = (TextView)findViewById(R.id.tvCheckout);
+        final TextView tvHours = (TextView)findViewById(R.id.tvHours);
+        final TextView tvWarning = (TextView)findViewById(R.id.tvWarning);
 
         imageView = (ImageView) findViewById(R.id.iv);
+        imageView2 = (ImageView) findViewById(ivOut);
         ivFlag = (ImageView) findViewById(R.id.ivFlag);
 
         final RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.spinnerkitloader);
@@ -123,7 +154,7 @@ public class DetailedUserActivity extends AppCompatActivity{
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(3400);
                 } catch (Exception e) {
                 } // Just catch the InterruptedException
 
@@ -137,10 +168,23 @@ public class DetailedUserActivity extends AppCompatActivity{
 
                         read(date, name, new OnGetDataListener() {
                             @Override
-                            public void onSuccess(CheckIn checkIn) {
+                            public void onSuccess(CheckIn checkIn, String timeout, String hours) {
+
+                                if(timeout!=null){
+                                    tvCheckout.setText(String.format("Time out: %s", timeout));
+                                }
+                                if(hours!=null){
+                                    tvHours.setText(String.format("Hours clocked: %s", hours));
+                                }
+
                                 tvDate.setText(String.format("Date: %s", date));
                                 tvStatus.setText(String.format("Status: %s", checkIn.getMc()));
                                 tvCheckin.setText(String.format("Time in: %s", checkIn.getCheckin()));
+
+                                if(tvDate.getText()!=null){
+                                    tvWarning.setVisibility(View.GONE);
+                                }
+
 
                                 if(checkIn.getFlag().equals(true)){
                                     ivFlag.setImageResource(R.drawable.calendarnotokflag);
@@ -166,6 +210,6 @@ public class DetailedUserActivity extends AppCompatActivity{
 
     public interface OnGetDataListener {
         //make new interface for call back
-        void onSuccess(CheckIn checkIn);
+        void onSuccess(CheckIn checkIn, String timeout, String hours);
     }
 }

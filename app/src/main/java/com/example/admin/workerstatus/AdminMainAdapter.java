@@ -29,7 +29,6 @@ public class AdminMainAdapter extends RecyclerView.Adapter<AdminMainHolder> {
 
     private String date, NoOfWork, NoOfMc;
 
-
     public AdminMainAdapter(Context context, List<String> list){
         this.context = context;
         this.list = list;

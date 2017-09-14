@@ -28,7 +28,6 @@ import com.heinrichreimersoftware.materialdrawer.structure.DrawerItem;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -185,8 +184,7 @@ public class UserCalendarActivity extends AppCompatActivity {
 
             @Override
             public void dateOnClick(Day day, int position) {
-                //recuerde que en java los meses inician desde 0
-                Date date = day.getDate();
+
                 SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
                 String formatted_day = df.format(day.getDate());
                 String [] split = formatted_day.split("-");
@@ -196,12 +194,12 @@ public class UserCalendarActivity extends AppCompatActivity {
 
                 String datekey = daykey + "-" + monthkey + "-" + calendarView.getYear();
 
-//
-//                Intent intent = new Intent(UserCalendarActivity.this, DetailedDateActivity.class);
-//                Bundle extras = new Bundle();
-//                extras.putString("date", datekey);
-//                intent.putExtras(extras);
-//                startActivity(intent);
+                Intent i = new Intent(UserCalendarActivity.this, DetailedUserActivity.class);
+                Bundle extras = new Bundle();
+                extras.putString("date", datekey);
+                extras.putString("name", name);
+                i.putExtras(extras);
+                startActivity(i);
 
             }
 

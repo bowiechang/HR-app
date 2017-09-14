@@ -42,7 +42,6 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
     private String ll;
 
     private String date;
-    private String name;
     private String checkin;
     private String location;
     private String flag;
@@ -71,7 +70,7 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
 
         //reading of latlng and conversion
         date = list.get(position).getDate();
-        name = list.get(position).getName();
+        final String name = list.get(position).getName();
         checkin = list.get(position).getCheckin();
         flag = list.get(position).getFlag().toString();
         status = list.get(position).getMc();
@@ -81,6 +80,42 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
         if(flag.equals("true")){
             holder.itemView.setBackgroundColor(colorChecked);
         }
+
+        final DatabaseReference databaseReference2 = FirebaseDatabase.getInstance().getReference().child("CheckIns");
+        databaseReference2.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    CheckIn checkIn = snapshot.getValue(CheckIn.class);
+                    if(checkIn != null) {
+                        if(checkIn.getDate().equals(date) && checkIn.getName().equals(name)){
+
+                            System.out.println("checker checkin.getdate" + checkIn.getDate());
+                            System.out.println("checker checkin.getName" + checkIn.getName());
+                            System.out.println("checker name" + name);
+
+                            String checkout = (String) snapshot.child("checkout").getValue();
+                            String hours = (String) snapshot.child("hours").getValue();
+
+                            System.out.println("checkout: " + checkout);
+                            System.out.println("hours: " + hours);
+
+                            if(checkout!=null && hours !=null){
+                                holder.tvCheckout.setText(String.format("Clock out: %s", checkout));
+                                holder.tvHours.setText(String.format("Hours: %s", hours));
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
 
         final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("LocationTrackings");
         databaseReference.addValueEventListener(new ValueEventListener() {
@@ -93,8 +128,9 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
                             ll = user.getLatlng();
 
                             try {
-                                holder.tvLocation.setText(getAddress(ll));
                                 location = getAddress(ll);
+                                holder.tvLocation.setText(location);
+
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -111,7 +147,7 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
         });
 
         //reading of image
-        final StorageReference pathref = storageReference.child(list.get(position).getDate() +"/" + list.get(position).getName()+".jpg");
+        final StorageReference pathref = storageReference.child(list.get(position).getDate() +"/" + "checkin-" + list.get(position).getName()+".jpg");
         pathref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri uri) {
@@ -121,6 +157,27 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
                 Glide.with(context)
                         .load(uri.toString())
                         .into(holder.iv);
+
+            }
+
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("failed uri", "failed: " + e.toString());
+            }
+        });
+
+        //reading of image
+        final StorageReference pathref2 = storageReference.child(list.get(position).getDate() +"/" + "checkout-" +list.get(position).getName()+".jpg");
+        pathref2.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                Log.d("success uri", uri.toString());
+
+                // Load the image using Glide
+                Glide.with(context)
+                        .load(uri.toString())
+                        .into(holder.ivOut);
 
             }
 

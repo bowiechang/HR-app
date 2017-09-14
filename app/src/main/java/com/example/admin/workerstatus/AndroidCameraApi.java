@@ -115,6 +115,7 @@ public class AndroidCameraApi extends AppCompatActivity {
 
     private String[] split = firebaseUser.getEmail().split("@");
     private String name = split[0];
+    private String statuskey = "";
 
     private DatabaseReference dbrefCheckIn = FirebaseDatabase.getInstance().getReference().child("CheckIns");
 
@@ -376,8 +377,10 @@ public class AndroidCameraApi extends AppCompatActivity {
 
                                                         }
                                                     });
+
+                                                    break;
                                                 }
-                                                break;
+
                                             }
                                         }
                                     }
@@ -541,8 +544,6 @@ public class AndroidCameraApi extends AppCompatActivity {
 
 
     private void uploadImage(File file) {
-
-        String statuskey = "";
 
         if(status.equals("CheckIn")){
             statuskey = "checkin";

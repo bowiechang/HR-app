@@ -55,6 +55,7 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
     private String todayDate = dateformat.format(c.getTime());
     private String time = timeformat.format(c.getTime());
     private int checker = 0;
+    private String statuskey = "checkin";
 
     private FloatingActionButton fab;
 
@@ -265,6 +266,7 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
 
         TextView tvName = (TextView) findViewById(R.id.tvName);
         final TextView tvStatus = (TextView) findViewById(R.id.tvStatus);
+        final TextView tv3 = (TextView) findViewById(R.id.textView3);
 
         final Button btnAttendance = (Button) findViewById(R.id.btnAttendance);
         final Button btnMc = (Button) findViewById(R.id.btnMc);
@@ -344,6 +346,10 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
                                 btnMc.setBackgroundColor(colorBtn);
                                 btnCheckOut.setBackgroundColor(colorBtn);
                                 btnAttendance.setText("Retake photo");
+
+                                tv3.setText("Please make sure the photo is clear");
+
+                                statuskey = "checkout";
                             }
                             else{
                                 tvStatus.setText("Attendance taken!");
@@ -352,10 +358,14 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
                                 btnAttendance.setBackgroundColor(colorBtn);
                                 btnMc.setBackgroundColor(colorBtn);
                                 btnAttendance.setText("Retake photo");
+
+                                tv3.setText("Please make sure the photo is clear");
+
+
                             }
 
                             //reading of image
-                            final StorageReference pathref = storageReference.child(todayDate +"/" + "checkin-" + split[0]+".jpg");
+                            final StorageReference pathref = storageReference.child(todayDate +"/" + statuskey + "-" + split[0]+".jpg");
                             pathref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
                                 public void onSuccess(Uri uri) {
@@ -391,7 +401,7 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
         if( getIntent().getExtras() != null)
         {
             String key = intent.getStringExtra("key");
-            if (key.equals("fromCam")) {
+            if (key.equals("fromCam")){
 
                 pushCheckin(new OnGetDataListener() {
 
@@ -406,8 +416,6 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
                         }
                     }
                 });
-
-
             }
         }
     }

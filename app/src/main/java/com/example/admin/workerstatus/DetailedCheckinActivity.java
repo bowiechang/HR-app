@@ -35,15 +35,16 @@ import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 
+import static org.apache.poi.sl.draw.binding.STRectAlignment.R;
+
 public class DetailedCheckinActivity extends AppCompatActivity implements OnClickListener {
 
     private String name, date, checkin, status, flag, location, uri2;
     private Button btnFlag, btnDLImage;
-    private ImageView imageView;
+    private ImageView imageView, imageViewOut;
     private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
     private DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("CheckIns");
     private ValueEventListener listener;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,7 +143,7 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
     public void readImage(String date, String name){
 
         //reading of image
-        final StorageReference pathref = storageReference.child(date +"/" + name +".jpg");
+        final StorageReference pathref = storageReference.child(date +"/" + "checkin-" + name +".jpg");
         pathref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
             public void onSuccess(Uri uri) {
@@ -152,6 +153,27 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
                 Glide.with(DetailedCheckinActivity.this)
                         .load(uri.toString())
                         .into(imageView);
+
+            }
+
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("failed uri", "failed: " + e.toString());
+            }
+        });
+
+        //reading of image
+        final StorageReference pathref2 = storageReference.child(date +"/" + "checkout-" + name +".jpg");
+        pathref2.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                Log.d("success uri", uri.toString());
+                uri2 = uri.toString();
+                // Load the image using Glide
+                Glide.with(DetailedCheckinActivity.this)
+                        .load(uri.toString())
+                        .into(imageViewOut);
 
             }
 
@@ -177,7 +199,8 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
+        getSupportActionBar().setTitle(name);   
 
         TextView tvDate = (TextView)findViewById(R.id.tvDate);
         TextView tvName = (TextView)findViewById(R.id.tvName);
@@ -188,6 +211,7 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         ConstraintLayout constraintLayout = (ConstraintLayout)findViewById(R.id.detailed_checkin_activity);
 
         imageView = (ImageView) findViewById(R.id.iv);
+        imageViewOut = (ImageView) findViewById(R.id.ivOut);
         btnFlag = (Button)findViewById(R.id.btnFlag);
         btnDLImage = (Button)findViewById(R.id.btnDLImage);
 

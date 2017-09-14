@@ -34,7 +34,7 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
             String[] split = firebaseUser.getEmail().split("@");
             String name = split[0];
 
-            if(name.equals("admin")){
+            if(name.contains("bv.")){
                 Intent intent = new Intent(this, AdminMainActivity.class);
                 startActivity(intent);
             }
