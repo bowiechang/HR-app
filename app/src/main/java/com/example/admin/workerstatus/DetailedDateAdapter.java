@@ -2,8 +2,6 @@ package com.example.admin.workerstatus;
 
 import android.content.Context;
 import android.content.Intent;
-import android.location.Address;
-import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -26,9 +24,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by admin on 20/7/17.
@@ -41,12 +37,9 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
     private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
     private String ll;
 
-    private String date;
-    private String checkin;
-    private String location;
+//    private String date;
     private String flag;
     private String status;
-
 
     public DetailedDateAdapter(Context context, List<CheckIn> list){
         this.context = context;
@@ -69,9 +62,9 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
         holder.tvStatus.setText(String.format("Status: %s", list.get(position).getMc()));
 
         //reading of latlng and conversion
-        date = list.get(position).getDate();
+        final String date = list.get(position).getDate();
         final String name = list.get(position).getName();
-        checkin = list.get(position).getCheckin();
+        final String checkin = list.get(position).getCheckin();
         flag = list.get(position).getFlag().toString();
         status = list.get(position).getMc();
 
@@ -90,19 +83,39 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
                     if(checkIn != null) {
                         if(checkIn.getDate().equals(date) && checkIn.getName().equals(name)){
 
-                            System.out.println("checker checkin.getdate" + checkIn.getDate());
-                            System.out.println("checker checkin.getName" + checkIn.getName());
-                            System.out.println("checker name" + name);
-
                             String checkout = (String) snapshot.child("checkout").getValue();
                             String hours = (String) snapshot.child("hours").getValue();
-
-                            System.out.println("checkout: " + checkout);
-                            System.out.println("hours: " + hours);
 
                             if(checkout!=null && hours !=null){
                                 holder.tvCheckout.setText(String.format("Clock out: %s", checkout));
                                 holder.tvHours.setText(String.format("Hours: %s", hours));
+
+                                final String checkoutTime = checkout;
+
+                                final DatabaseReference databaseReference3 = FirebaseDatabase.getInstance().getReference().child("LocationTrackings");
+                                databaseReference3.addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                        System.out.println("checkoutTime: " + checkoutTime);
+                                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                            User user = snapshot.getValue(User.class);
+                                            if(user != null) {
+
+                                                if(user.getDate().equals(date) && user.getName().equals(name) && user.getTime().equals(checkoutTime)){
+                                                    holder.tvCheckoutLocation.setText(String.format("Checkin Location: %s", user.getAddress()));
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+
+
                             }
                             break;
                         }
@@ -116,7 +129,6 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
             }
         });
 
-
         final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("LocationTrackings");
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -125,17 +137,9 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
                     User user = snapshot.getValue(User.class);
                     if(user != null) {
                         if(user.getDate().equals(date) && user.getName().equals(name) && user.getTime().equals(checkin)){
-                            ll = user.getLatlng();
-
-                            try {
-                                location = getAddress(ll);
-                                holder.tvLocation.setText(location);
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-
+                            holder.tvLocation.setText(String.format("Checkin Location: %s", user.getAddress()));
                         }
+
                     }
                 }
             }
@@ -145,6 +149,8 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
 
             }
         });
+
+
 
         //reading of image
         final StorageReference pathref = storageReference.child(list.get(position).getDate() +"/" + "checkin-" + list.get(position).getName()+".jpg");
@@ -199,6 +205,8 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
                 extras.putString("location", holder.tvLocation.getText().toString());
                 extras.putString("flag", list.get(position).getFlag().toString());
                 extras.putString("status", list.get(position).getMc());
+                extras.putString("checkoutTime", holder.tvCheckout.getText().toString());
+                extras.putString("checkoutLocation", holder.tvCheckoutLocation.getText().toString());
                 i.putExtras(extras);
                 context.startActivity(i);
             }
@@ -210,21 +218,21 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
         return this.list.size();
     }
 
-    public String getAddress(String latlng) throws IOException {
-
-        String[] split = latlng.split(",");
-
-        Double lat = Double.parseDouble(split[0]);
-        Double lng = Double.parseDouble(split[1]);
-
-        Geocoder geocoder;
-        List<Address> addresses;
-        geocoder = new Geocoder(context, Locale.getDefault());
-
-        addresses = geocoder.getFromLocation(lat, lng, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
-
-        String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-        return address;
-    }
+//    public String getAddress(String latlng) throws IOException {
+//
+//        String[] split = latlng.split(",");
+//
+//        Double lat = Double.parseDouble(split[0]);
+//        Double lng = Double.parseDouble(split[1]);
+//
+//        Geocoder geocoder;
+//        List<Address> addresses;
+//        geocoder = new Geocoder(context, Locale.getDefault());
+//
+//        addresses = geocoder.getFromLocation(lat, lng, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+//
+//        String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+//        return address;
+//    }
 
 }

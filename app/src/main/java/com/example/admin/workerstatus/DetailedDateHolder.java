@@ -14,7 +14,7 @@ import java.util.List;
 
 public class DetailedDateHolder extends RecyclerView.ViewHolder{
 
-    protected TextView tvName, tvCheckin, tvLocation, tvStatus, tvCheckout, tvHours;
+    protected TextView tvName, tvCheckin, tvLocation, tvStatus, tvCheckout, tvHours, tvCheckoutLocation;
     protected ImageView iv, ivOut;
     public Context context;
 
@@ -27,6 +27,7 @@ public class DetailedDateHolder extends RecyclerView.ViewHolder{
         tvCheckout = (TextView) itemview.findViewById(R.id.tvCheckout);
         tvHours = (TextView) itemview.findViewById(R.id.tvHours);
         tvLocation = (TextView) itemview.findViewById(R.id.tvlocation);
+        tvCheckoutLocation = (TextView) itemview.findViewById(R.id.tvCheckoutLocation);
         iv = (ImageView) itemview.findViewById(R.id.iv);
         ivOut = (ImageView) itemview.findViewById(R.id.ivOut);
         tvStatus = (TextView) itemview.findViewById(R.id.tvStatus);

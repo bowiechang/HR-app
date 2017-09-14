@@ -3,6 +3,8 @@ package com.example.admin.workerstatus;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -34,17 +36,22 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
-import static org.apache.poi.sl.draw.binding.STRectAlignment.R;
+//import static org.apache.poi.sl.draw.binding.STRectAlignment.R;
 
 public class DetailedCheckinActivity extends AppCompatActivity implements OnClickListener {
 
-    private String name, date, checkin, status, flag, location, uri2;
+    private String name, date, checkin, status, flag, location, uri2, checkoutTime, checkoutLocation;
     private Button btnFlag, btnDLImage;
     private ImageView imageView, imageViewOut;
     private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
     private DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("CheckIns");
     private ValueEventListener listener;
+
+    private TextView tvCheckOutLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,11 +67,12 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
             location = getIntent().getExtras().getString("location");
             flag = getIntent().getExtras().getString("flag");
             checkin = getIntent().getExtras().getString("checkin");
+            checkoutTime = getIntent().getExtras().getString("checkoutTime");
+            checkoutLocation = getIntent().getExtras().getString("checkoutLocation");
 
-            Log.d("flag", flag);
+            init();
+            readImage(date, name);
         }
-
-        init();
     }
 
     @Override
@@ -139,6 +147,39 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
             databaseReference.addValueEventListener(listener);
         }
     }
+//
+//    public void retrieveCheckOutLocation(){
+//
+//        final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("LocationTrackings");
+//        databaseReference.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+//                    User user = snapshot.getValue(User.class);
+//                    if(user != null) {
+//                        if(user.getDate().equals(date) && user.getName().equals(name) && user.getTime().equals(checkoutTime)){
+//
+//                            String ll = user.getLatlng();
+//
+//                            try {
+//                                location = getAddress(ll);
+//                                tvCheckOutLocation.setText(String.format("Location: %s", location));
+//
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
+//
+//    }
 
     public void readImage(String date, String name){
 
@@ -199,21 +240,24 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setTitle(name);   
+//        getSupportActionBar().setDisplayShowTitleEnabled(true);
+        getSupportActionBar().setTitle("Name: " + name.toUpperCase());
 
         TextView tvDate = (TextView)findViewById(R.id.tvDate);
-        TextView tvName = (TextView)findViewById(R.id.tvName);
         TextView tvStatus = (TextView)findViewById(R.id.tvStatus);
         TextView tvLocation = (TextView)findViewById(R.id.tvLocation);
         TextView tvCheckin = (TextView)findViewById(R.id.tvCheckin);
         TextView tvFlag = (TextView)findViewById(R.id.tvFlag);
+        tvCheckOutLocation = (TextView)findViewById(R.id.tvCheckoutLocation);
+        TextView tvCheckOutTime = (TextView)findViewById(R.id.tvCheckOut);
         ConstraintLayout constraintLayout = (ConstraintLayout)findViewById(R.id.detailed_checkin_activity);
 
-        imageView = (ImageView) findViewById(R.id.iv);
-        imageViewOut = (ImageView) findViewById(R.id.ivOut);
+        imageView = (ImageView) findViewById(R.id.detailed_checkin_activity_iv);
+        imageViewOut = (ImageView) findViewById(R.id.detailed_checkin_activity_ivOut);
         btnFlag = (Button)findViewById(R.id.btnFlag);
         btnDLImage = (Button)findViewById(R.id.btnDLImage);
+
+//        retrieveCheckOutLocation();
 
         final RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.spinnerkitloader);
         btnFlag.setVisibility(View.INVISIBLE);
@@ -255,11 +299,12 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         }).start();
 
         tvDate.setText(String.format("Date: %s", date));
-        tvName.setText(String.format("Name: %s", name));
         tvStatus.setText(String.format("Status: %s", status));
-        tvLocation.setText(String.format("Location: %s", location));
-        tvCheckin.setText(String.format("Time in: %s", checkin));
+        tvLocation.setText(String.format("Checkin Location: %s", location));
+        tvCheckin.setText(String.format("Checkin Time: %s", checkin));
         tvFlag.setText(String.format("Flag: %s", flag));
+        tvCheckOutTime.setText(String.format("Checkout Time: %s", checkoutTime));
+        tvCheckOutLocation.setText(String.format("Checkout Location: %s", checkoutLocation));
 
         btnFlag.setOnClickListener(this);
         btnDLImage.setOnClickListener(new OnClickListener() {
@@ -276,7 +321,6 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         else{
             btnFlag.setBackgroundColor(colorflag);
         }
-        readImage(date, name);
     }
 
     @Override
@@ -349,14 +393,27 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
             }
         }).start();
 
-
-
-
-
     }
 
     private boolean isFileExists(){
         File folder1 = new File(Environment.getExternalStorageDirectory().getPath() + "/Download/image.jpg");
         return folder1.exists();
+    }
+
+    public String getAddress(String latlng) throws IOException {
+
+        String[] split = latlng.split(",");
+
+        Double lat = Double.parseDouble(split[0]);
+        Double lng = Double.parseDouble(split[1]);
+
+        Geocoder geocoder;
+        List<Address> addresses;
+        geocoder = new Geocoder(DetailedCheckinActivity.this, Locale.getDefault());
+
+        addresses = geocoder.getFromLocation(lat, lng, 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+
+        String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+        return address;
     }
 }
