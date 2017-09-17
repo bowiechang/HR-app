@@ -22,7 +22,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.ajts.androidmads.library.SQLiteToExcel;
-import com.creativityapps.gmailbackgroundlibrary.BackgroundMail;
 import com.darwindeveloper.onecalendar.clases.Day;
 import com.darwindeveloper.onecalendar.views.OneCalendarView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -149,7 +148,11 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
                     if(checkIn != null) {
                         //check if it matches monthkey
                         if(getMonth(checkIn.getDate()).equals("0" +(monthkey+1)) && getYear(checkIn.getDate()).equals(calendarView.getYear() + "")) {
-                            sqliteController.insertCheckInRecords(checkIn);
+
+                            String hours = (String) snapshot.child("hours").getValue();
+                            String checkoutTime = (String) snapshot.child("checkout").getValue();
+
+                            sqliteController.insertCheckInRecords(checkIn, hours, checkoutTime);
                             System.out.println(checkIn + "checkin results");
                         }
                     }
@@ -178,9 +181,13 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
                     if(checkIn != null) {
                         //check if it matches monthkey
                         if(getMonth(checkIn.getDate()).equals("0" +(monthkey+1)) && getYear(checkIn.getDate()).equals(calendarView.getYear() + "")) {
-                            if(checkIn.getName().equals(namekey))
-                            sqliteController.insertCheckInRecords(checkIn);
-                            System.out.println(checkIn + "checkin results");
+                            if(checkIn.getName().equals(namekey)) {
+
+                                String hours = (String) snapshot.child("hours").getValue();
+                                String checkoutTime = (String) snapshot.child("checkout").getValue();
+                                sqliteController.insertCheckInRecords(checkIn, hours, checkoutTime);
+                                System.out.println(checkIn + "checkin results");
+                            }
                         }
                     }
                 }
@@ -310,37 +317,38 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
 
     }
 
-    private void sentReportWithGmailBg(){
-
-        String filename="attendance.xls";
-        File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/", filename);
-        Uri path = Uri.fromFile(filelocation);
-
-        BackgroundMail.newBuilder(this)
-                .withUsername("bv.master01@gmail.com")
-                .withPassword("bv123456")
-                .withMailto("bezbowie@gmail.com")
-                .withType(BackgroundMail.TYPE_PLAIN)
-                .withAttachments("attendance.xls")
-                .withSubject("this is the subject")
-                .withBody("this is the body")
-                .withOnSuccessCallback(new BackgroundMail.OnSuccessCallback() {
-                    @Override
-                    public void onSuccess() {
-                        //do some magic
-                        Toast.makeText(AdminCalendarActivity.this, "done mail", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .withOnFailCallback(new BackgroundMail.OnFailCallback() {
-                    @Override
-                    public void onFail() {
-                        //do some magic
-                        Toast.makeText(AdminCalendarActivity.this, "failed mail", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .send();
-
-    }
+    //automatic but have to investigate more
+//    private void sentReportWithGmailBg(){
+//
+//        String filename="attendance.xls";
+//        File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/", filename);
+//        Uri path = Uri.fromFile(filelocation);
+//
+//        BackgroundMail.newBuilder(this)
+//                .withUsername("bv.master01@gmail.com")
+//                .withPassword("bv123456")
+//                .withMailto("bezbowie@gmail.com")
+//                .withType(BackgroundMail.TYPE_PLAIN)
+//                .withAttachments("attendance.xls")
+//                .withSubject("this is the subject")
+//                .withBody("this is the body")
+//                .withOnSuccessCallback(new BackgroundMail.OnSuccessCallback() {
+//                    @Override
+//                    public void onSuccess() {
+//                        //do some magic
+//                        Toast.makeText(AdminCalendarActivity.this, "done mail", Toast.LENGTH_SHORT).show();
+//                    }
+//                })
+//                .withOnFailCallback(new BackgroundMail.OnFailCallback() {
+//                    @Override
+//                    public void onFail() {
+//                        //do some magic
+//                        Toast.makeText(AdminCalendarActivity.this, "failed mail", Toast.LENGTH_SHORT).show();
+//                    }
+//                })
+//                .send();
+//
+//    }
 
     private void initDrawer(){
 

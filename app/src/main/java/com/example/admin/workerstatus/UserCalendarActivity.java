@@ -12,7 +12,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.LayoutManager;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.darwindeveloper.onecalendar.clases.Day;
 import com.darwindeveloper.onecalendar.views.OneCalendarView;
@@ -47,6 +47,8 @@ public class UserCalendarActivity extends AppCompatActivity {
     private String[] split;
     private String name;
 
+    private TextView tvWarning;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +56,7 @@ public class UserCalendarActivity extends AppCompatActivity {
 
         calendarView = (OneCalendarView) findViewById(R.id.oneCalendar);
         recyclerView = (RecyclerView) findViewById(R.id.rv);
+        tvWarning = (TextView) findViewById(R.id.tvWarning);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
@@ -132,10 +135,13 @@ public class UserCalendarActivity extends AppCompatActivity {
                 System.out.println(hashMap.size() + "size of hm");
 
                 if(listForRV.isEmpty()){
-                    Toast.makeText(UserCalendarActivity.this, "no working days in this month", Toast.LENGTH_SHORT).show();
+                    recyclerView.setVisibility(View.GONE);
+                    tvWarning.setVisibility(View.VISIBLE);
                 }
-
-
+                else{
+                    recyclerView.setVisibility(View.VISIBLE);
+                    tvWarning.setVisibility(View.GONE);
+                }
             }
 
             @Override
@@ -159,6 +165,8 @@ public class UserCalendarActivity extends AppCompatActivity {
 
         UserCalendarAdapter userCalendarAdapter = new UserCalendarAdapter(UserCalendarActivity.this, listForRV);
         recyclerView.setAdapter(userCalendarAdapter);
+
+
     }
 
 

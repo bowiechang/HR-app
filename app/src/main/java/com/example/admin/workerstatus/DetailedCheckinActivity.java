@@ -37,6 +37,7 @@ import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -44,7 +45,7 @@ import java.util.Locale;
 
 public class DetailedCheckinActivity extends AppCompatActivity implements OnClickListener {
 
-    private String name, date, checkin, status, flag, location, uri2, checkoutTime, checkoutLocation;
+    private String name, date, checkin, status, flag, location, uri2, uri3, checkoutTime, checkoutLocation;
     private Button btnFlag, btnDLImage;
     private ImageView imageView, imageViewOut;
     private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
@@ -210,7 +211,7 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
             @Override
             public void onSuccess(Uri uri) {
                 Log.d("success uri", uri.toString());
-                uri2 = uri.toString();
+                uri3 = uri.toString();
                 // Load the image using Glide
                 Glide.with(DetailedCheckinActivity.this)
                         .load(uri.toString())
@@ -310,7 +311,8 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         btnDLImage.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                downloadFile(uri2);
+                Toast.makeText(DetailedCheckinActivity.this, "Getting it up....", Toast.LENGTH_SHORT).show();
+                downloadFile(uri2, uri3);
             }
         });
 
@@ -332,10 +334,13 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         }
     }
 
-    private void downloadFile(String uri) {
+    private void downloadFile(final String uri, String uri2) {
         if(isFileExists()){
-            File folder1 = new File(Environment.getExternalStorageDirectory().getPath() + "/Download/image.jpg");
+            File folder1 = new File(Environment.getExternalStorageDirectory().getPath() + "/Download/checkin.jpg");
             folder1.delete();
+
+            File folder2 = new File(Environment.getExternalStorageDirectory().getPath() + "/Download/checkout.jpg");
+            folder2.delete();
         }
 
         String directory_path = Environment.getExternalStorageDirectory().getPath() + "/Download/";
@@ -354,9 +359,22 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
                         | DownloadManager.Request.NETWORK_MOBILE)
                 .setAllowedOverRoaming(false).setTitle("Downloading and exporting")
                 .setDescription("Ready in a bit")
-                .setDestinationInExternalPublicDir("/Download", "image.jpg");
+                .setDestinationInExternalPublicDir("/Download", "checkin.jpg");
+
+        //image 2
+        Uri downloadUri2 = Uri.parse(uri2);
+        DownloadManager.Request request2 = new DownloadManager.Request(
+                downloadUri2);
+
+        request2.setAllowedNetworkTypes(
+                DownloadManager.Request.NETWORK_WIFI
+                        | DownloadManager.Request.NETWORK_MOBILE)
+                .setAllowedOverRoaming(false).setTitle("Downloading and exporting")
+                .setDescription("Ready in a bit")
+                .setDestinationInExternalPublicDir("/Download", "checkout.jpg");
 
         mgr.enqueue(request);
+        mgr.enqueue(request2);
 
 
         //emailing
@@ -373,17 +391,29 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
                     public void run() {
 
                         if(isFileExists()) {
-                            String filename="image.jpg";
+                            ArrayList<Uri> uris = new ArrayList<Uri>();
+
+                            String filename="checkin.jpg";
+                            String filename2="checkout.jpg";
+
                             File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/", filename);
+                            File filelocation2 = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/", filename2);
+
                             Uri path = Uri.fromFile(filelocation);
-                            Intent emailIntent = new Intent(Intent.ACTION_SEND);
+                            Uri path2 = Uri.fromFile(filelocation2);
+
+                            uris.add(path);
+                            uris.add(path2);
+
+                            Intent emailIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
 // set the type to 'email'
                             emailIntent .setType("vnd.android.cursor.dir/email");
-                            String to[] = {"bezbowie@gmail.com"};
+                            String to[] = {"bv.master01@gmail.com"};
                             emailIntent .putExtra(Intent.EXTRA_EMAIL, to);
 // the attachment
-                            emailIntent .putExtra(Intent.EXTRA_STREAM, path);
+//                            emailIntent .putExtra(Intent.EXTRA_STREAM, path);
 // the mail subject
+                            emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
                             emailIntent .putExtra(Intent.EXTRA_SUBJECT, name + " on " + date );
                             startActivity(Intent.createChooser(emailIntent , "Send email..."));
                         }
@@ -396,7 +426,7 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
     }
 
     private boolean isFileExists(){
-        File folder1 = new File(Environment.getExternalStorageDirectory().getPath() + "/Download/image.jpg");
+        File folder1 = new File(Environment.getExternalStorageDirectory().getPath() + "/Download/checkin.jpg");
         return folder1.exists();
     }
 

@@ -55,8 +55,8 @@
 
     <ImageView
         android:id="@+id/detailed_checkin_activity_ivOut"
-        android:layout_width="wrap_content"
-        android:layout_height="270dp"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
         android:layout_marginRight="16dp"
         android:layout_marginTop="73dp"
         android:background="@color/grey"
@@ -119,8 +119,8 @@
 
     <ImageView
         android:id="@+id/detailed_checkin_activity_iv"
-        android:layout_width="wrap_content"
-        android:layout_height="270dp"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="73dp"
         android:background="@color/grey"

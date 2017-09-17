@@ -1,9 +1,7 @@
 package com.example.admin.workerstatus;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -12,13 +10,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.LayoutManager;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Toast;
 
-import com.ajts.androidmads.library.SQLiteToExcel;
-import com.creativityapps.gmailbackgroundlibrary.BackgroundMail;
 import com.darwindeveloper.onecalendar.clases.Day;
 import com.darwindeveloper.onecalendar.views.OneCalendarView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,7 +25,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.heinrichreimersoftware.materialdrawer.DrawerView;
 import com.heinrichreimersoftware.materialdrawer.structure.DrawerItem;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -204,110 +198,110 @@ public class AdminMainActivity extends AppCompatActivity {
         });
     }
 
-    private void setSQLite(){
+//    private void setSQLite(){
+//
+//        SqliteController sqliteController = new SqliteController(this);
+//        sqliteController.deleteDB();
+//        sqliteController.createDB();
+//    }
+//
+//    private void insertSQLiteCheckIn(CheckIn checkIn){
+//
+//        SqliteController sqliteController = new SqliteController(this);
+//        sqliteController.insertCheckInRecords(checkIn);
+//    }
+//
+//    private void insertSQLiteLocationTracking(User user){
+//
+//        SqliteController sqliteController = new SqliteController(this);
+//        sqliteController.insertLocationTrackingRecords(user);
+//    }
+//
+//    private void getSQLiteValues(){
+//        SqliteController sqliteController = new SqliteController(this);
+//        sqliteController.getAllRecord();
+//
+//        exportSQLtoExcel();
+//    }
 
-        SqliteController sqliteController = new SqliteController(this);
-        sqliteController.deleteDB();
-        sqliteController.createDB();
-    }
-
-    private void insertSQLiteCheckIn(CheckIn checkIn){
-
-        SqliteController sqliteController = new SqliteController(this);
-        sqliteController.insertCheckInRecords(checkIn);
-    }
-
-    private void insertSQLiteLocationTracking(User user){
-
-        SqliteController sqliteController = new SqliteController(this);
-        sqliteController.insertLocationTrackingRecords(user);
-    }
-
-    private void getSQLiteValues(){
-        SqliteController sqliteController = new SqliteController(this);
-        sqliteController.getAllRecord();
-
-        exportSQLtoExcel();
-    }
-
-    private void exportSQLtoExcel(){
-
-        String directory_path = Environment.getExternalStorageDirectory().getPath() + "/Download/";
-        File file = new File(directory_path);
-        file.mkdir();
-        // Export SQLite DB as EXCEL FILE
-        SQLiteToExcel sqliteToExcel = new SQLiteToExcel(getApplicationContext(), "androidsqlite.db", directory_path);
-        sqliteToExcel.exportAllTables("attendance.xls", new SQLiteToExcel.ExportListener() {
-            @Override
-            public void onStart() {
-                Log.d("export", "start");
-            }
-
-            @Override
-            public void onCompleted(String filePath) {
-                Log.d("export", "completed");
-                Log.d("fp", filePath);
-//                sendReport(filePath);
-//                sentReportWithGmailBg();
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Log.d("export", "error");
-            }
-        });
-    }
-
-    private void sendReport(){
-
-        System.out.println(Environment.getExternalStorageDirectory().getAbsolutePath());
-        String filename="attendance.xls";
-        File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/", filename);
-        Uri path = Uri.fromFile(filelocation);
-        Intent emailIntent = new Intent(Intent.ACTION_SEND);
-// set the type to 'email'
-        emailIntent .setType("vnd.android.cursor.dir/email");
-        String to[] = {"bezbowie@gmail.com"};
-        emailIntent .putExtra(Intent.EXTRA_EMAIL, to);
-// the attachment
-        emailIntent .putExtra(Intent.EXTRA_STREAM, path);
-// the mail subject
-        emailIntent .putExtra(Intent.EXTRA_SUBJECT, "Subject");
-        startActivity(Intent.createChooser(emailIntent , "Send email..."));
-
-    }
-
-    private void sentReportWithGmailBg(){
-
-        String filename="attendance.xls";
-        File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/", filename);
-        Uri path = Uri.fromFile(filelocation);
-
-        BackgroundMail.newBuilder(this)
-                .withUsername("bv.master01@gmail.com")
-                .withPassword("bv123456")
-                .withMailto("bezbowie@gmail.com")
-                .withType(BackgroundMail.TYPE_PLAIN)
-                .withAttachments("attendance.xls")
-                .withSubject("this is the subject")
-                .withBody("this is the body")
-                .withOnSuccessCallback(new BackgroundMail.OnSuccessCallback() {
-                    @Override
-                    public void onSuccess() {
-                        //do some magic
-                        Toast.makeText(AdminMainActivity.this, "done mail", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .withOnFailCallback(new BackgroundMail.OnFailCallback() {
-                    @Override
-                    public void onFail() {
-                        //do some magic
-                        Toast.makeText(AdminMainActivity.this, "failed mail", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .send();
-
-    }
+//    private void exportSQLtoExcel(){
+//
+//        String directory_path = Environment.getExternalStorageDirectory().getPath() + "/Download/";
+//        File file = new File(directory_path);
+//        file.mkdir();
+//        // Export SQLite DB as EXCEL FILE
+//        SQLiteToExcel sqliteToExcel = new SQLiteToExcel(getApplicationContext(), "androidsqlite.db", directory_path);
+//        sqliteToExcel.exportAllTables("attendance.xls", new SQLiteToExcel.ExportListener() {
+//            @Override
+//            public void onStart() {
+//                Log.d("export", "start");
+//            }
+//
+//            @Override
+//            public void onCompleted(String filePath) {
+//                Log.d("export", "completed");
+//                Log.d("fp", filePath);
+////                sendReport(filePath);
+////                sentReportWithGmailBg();
+//            }
+//
+//            @Override
+//            public void onError(Exception e) {
+//                Log.d("export", "error");
+//            }
+//        });
+//    }
+//
+//    private void sendReport(){
+//
+//        System.out.println(Environment.getExternalStorageDirectory().getAbsolutePath());
+//        String filename="attendance.xls";
+//        File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/", filename);
+//        Uri path = Uri.fromFile(filelocation);
+//        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+//// set the type to 'email'
+//        emailIntent .setType("vnd.android.cursor.dir/email");
+//        String to[] = {"bezbowie@gmail.com"};
+//        emailIntent .putExtra(Intent.EXTRA_EMAIL, to);
+//// the attachment
+//        emailIntent .putExtra(Intent.EXTRA_STREAM, path);
+//// the mail subject
+//        emailIntent .putExtra(Intent.EXTRA_SUBJECT, "Subject");
+//        startActivity(Intent.createChooser(emailIntent , "Send email..."));
+//
+//    }
+//
+//    private void sentReportWithGmailBg(){
+//
+//        String filename="attendance.xls";
+//        File filelocation = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Download/", filename);
+//        Uri path = Uri.fromFile(filelocation);
+//
+//        BackgroundMail.newBuilder(this)
+//                .withUsername("bv.master01@gmail.com")
+//                .withPassword("bv123456")
+//                .withMailto("bezbowie@gmail.com")
+//                .withType(BackgroundMail.TYPE_PLAIN)
+//                .withAttachments("attendance.xls")
+//                .withSubject("this is the subject")
+//                .withBody("this is the body")
+//                .withOnSuccessCallback(new BackgroundMail.OnSuccessCallback() {
+//                    @Override
+//                    public void onSuccess() {
+//                        //do some magic
+//                        Toast.makeText(AdminMainActivity.this, "done mail", Toast.LENGTH_SHORT).show();
+//                    }
+//                })
+//                .withOnFailCallback(new BackgroundMail.OnFailCallback() {
+//                    @Override
+//                    public void onFail() {
+//                        //do some magic
+//                        Toast.makeText(AdminMainActivity.this, "failed mail", Toast.LENGTH_SHORT).show();
+//                    }
+//                })
+//                .send();
+//
+//    }
 
     private void initDrawer(){
 

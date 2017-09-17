@@ -51,9 +51,9 @@ public class adminLoginActivity extends AppCompatActivity implements OnClickList
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if(task.isSuccessful()){
 
+                    Toast.makeText(adminLoginActivity.this, "Validating....", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(adminLoginActivity.this, AdminMainActivity.class);
                     startActivity(intent);
-                    Toast.makeText(adminLoginActivity.this, "Validating....", Toast.LENGTH_SHORT).show();
                 }
                 else{
                     Toast.makeText(adminLoginActivity.this, "Please check ur admin id again", Toast.LENGTH_SHORT).show();

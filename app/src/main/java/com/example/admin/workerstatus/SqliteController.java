@@ -27,7 +27,7 @@ public class SqliteController extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        db.execSQL("CREATE TABLE Attendance (Name TEXT, Date TEXT, CheckIn TEXT, Flag TEXT, Status TEXT)");
+        db.execSQL("CREATE TABLE Attendance (Name TEXT, Date TEXT, Day TEXT, CheckIn TEXT, CheckOut TEXT, Flag TEXT, Status TEXT, Duration TEXT)");
         db.execSQL("CREATE TABLE LocationTracking (Date TEXT, Name TEXT, Time TEXT, Address TEXT)");
 
         Log.d(LOGCAT, "onCreate reached");
@@ -48,7 +48,7 @@ public class SqliteController extends SQLiteOpenHelper{
 //        database.close();
 //    }
 
-    public void insertCheckInRecords(CheckIn checkIn) {
+    public void insertCheckInRecords(CheckIn checkIn, String hours, String checkout) {
 
         String flag = "";
         if(checkIn.getFlag().equals(true)){
@@ -65,6 +65,12 @@ public class SqliteController extends SQLiteOpenHelper{
         values.put("CheckIn", checkIn.getCheckin());
         values.put("Flag", flag);
         values.put("Status", checkIn.getMc());
+
+        //
+        values.put("Day", checkIn.getDay());
+        values.put("Duration", hours);
+        values.put("CheckOut", checkout);
+        //
         database.insert("Attendance", null, values);
         database.close();
     }
@@ -107,8 +113,11 @@ public class SqliteController extends SQLiteOpenHelper{
     }
 
     public void createDB(){
-        database.execSQL("CREATE TABLE Attendance (Name TEXT, Date TEXT, CheckIn TEXT, Flag TEXT, Status TEXT)");
+        database.execSQL("CREATE TABLE Attendance (Name TEXT, Date TEXT, Day TEXT, CheckIn TEXT, CheckOut TEXT, Flag TEXT, Status TEXT, Duration TEXT)");
         database.execSQL("CREATE TABLE LocationTracking (Date TEXT, Name TEXT, Time TEXT, Address TEXT)");
     }
+
+
+
 
 }

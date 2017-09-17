@@ -1,7 +1,6 @@
 package com.example.admin.workerstatus;
 
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +16,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import static android.content.res.Configuration.KEYBOARD_12KEY;
 
 public class LoginActivity extends AppCompatActivity implements OnClickListener {
 
@@ -47,7 +48,7 @@ public class LoginActivity extends AppCompatActivity implements OnClickListener 
         TextView tvAdmin = (TextView) findViewById(R.id.tvAdmin);
 
         etLoginId = (EditText) findViewById(R.id.etLoginId);
-        etLoginId.setRawInputType(Configuration.KEYBOARD_QWERTY);
+        etLoginId.setRawInputType(KEYBOARD_12KEY);
         Button btnLogin = (Button) findViewById(R.id.btnLogin);
 
         btnLogin.setOnClickListener(this);

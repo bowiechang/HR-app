@@ -57,7 +57,7 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
 
     @Override
     public void onBindViewHolder(final DetailedDateHolder holder, final int position) {
-        holder.tvName.setText(String.format("Name: %s", list.get(position).getName().toUpperCase()));
+        holder.tvName.setText(String.format("ID: %s", list.get(position).getName().toUpperCase()));
         holder.tvCheckin.setText(String.format("Clock in: %s", list.get(position).getCheckin()));
         holder.tvStatus.setText(String.format("Status: %s", list.get(position).getMc()));
 
