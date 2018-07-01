@@ -12,16 +12,26 @@ public class CheckIn {
     private String mc;
     private Boolean flag;
     private String day;
+    private String location;
 
     public CheckIn(){}
 
-    public CheckIn(String name, String checkin, String date, String mc, Boolean flag, String day){
+    public CheckIn(String name, String checkin, String date, String mc, Boolean flag, String day, String location){
         this.name = name;
         this.checkin = checkin;
         this.date = date;
         this.mc = mc;
         this.flag = flag;
         this.day = day;
+        this.location = location;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public String getDay() {

@@ -27,6 +27,7 @@ dependencies {
     })
 
 
+
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.google.android.gms:play-services:11.0.4'
@@ -40,7 +41,6 @@ dependencies {
     compile 'com.ajts.androidmads.SQLite2Excel:library:1.0.2'
     compile 'com.github.yesidlazaro:GmailBackground:1.2.0'
     compile 'com.heinrichreimersoftware:material-drawer:2.3.3'
-
     testCompile 'junit:junit:4.12'
 }
 

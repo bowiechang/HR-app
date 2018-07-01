@@ -44,6 +44,8 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
     private OneCalendarView calendarView;
     private DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("CheckIns");
     private DatabaseReference databaseReference2 = FirebaseDatabase.getInstance().getReference().child("LocationTrackings");
+    private DatabaseReference databaseReference3 = FirebaseDatabase.getInstance().getReference().child("User");
+    private DatabaseReference databaseReference4 = FirebaseDatabase.getInstance().getReference().child("Hours");
     private FloatingActionButton fab;
     private Button btnGenerateReportForAll, btnGenerateReportForUser;
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
@@ -57,8 +59,6 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_generatereport);
 
-
-
         calendarView = (OneCalendarView) findViewById(R.id.oneCalendar);
         fab = (FloatingActionButton)findViewById(R.id.fab);
         btnGenerateReportForAll = (Button) findViewById(R.id.btnGenerateForAll);
@@ -68,6 +68,7 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
         btnGenerateReportForUser.setOnClickListener(this);
         initCalendar();
         initDrawer();
+
     }
 
     private String getMonth(String date){
@@ -139,21 +140,61 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
 
         final SqliteController sqliteController = new SqliteController(this);
 
-        databaseReference.orderByChild("date").addValueEventListener(new ValueEventListener() {
+        databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    CheckIn checkIn = snapshot.getValue(CheckIn.class);
+                    final CheckIn checkIn = snapshot.getValue(CheckIn.class);
                     if(checkIn != null) {
                         //check if it matches monthkey
                         if(getMonth(checkIn.getDate()).equals("0" +(monthkey+1)) && getYear(checkIn.getDate()).equals(calendarView.getYear() + "")) {
 
-                            String hours = (String) snapshot.child("hours").getValue();
-                            String checkoutTime = (String) snapshot.child("checkout").getValue();
+                            final String hours = snapshot.child("hours").getValue().toString();
+                            final String hours2 = String.valueOf(hours);
 
-                            sqliteController.insertCheckInRecords(checkIn, hours, checkoutTime);
-                            System.out.println(checkIn + "checkin results");
+                            databaseReference3.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                        final Account account = snapshot.getValue(Account.class);
+                                        if (account != null) {
+                                            if(account.getUserid().equals(checkIn.getName())) {
+
+                                                databaseReference4.addValueEventListener(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                                        for(DataSnapshot snapshot1 : dataSnapshot.getChildren()){
+                                                            Hours hour = snapshot1.getValue(Hours.class);
+                                                            System.out.println("monthchecker"+"0"+(monthkey+1) + "-" + calendarView.getYear());
+                                                            if(hour.getName().equals(checkIn.getName()) && hour.getMonth().equals("0"+(monthkey+1) + "-" + calendarView.getYear())){
+                                                                System.out.println("monthchecker"+"0"+(monthkey+1) + "-" + calendarView.getYear());
+                                                                sqliteController.insertCheckInRecords(checkIn, hours, account, hour);
+                                                                sqliteController.insertCheckInRecordsLocation(checkIn, hours, account, hour);
+                                                            }
+
+                                                        }
+                                                    }
+
+                                                    @Override
+                                                    public void onCancelled(DatabaseError databaseError) {
+
+                                                    }
+                                                });
+
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+
+
                         }
                     }
                 }
@@ -164,31 +205,69 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
 
             }
         });
-
-
     }
 
-    private void insertSQLiteCheckInForUser(final int monthkey, final String namekey){
+    private void insertSQLiteCheckInForUser(final int monthkey, final String wpNo){
 
         final SqliteController sqliteController = new SqliteController(this);
 
-        databaseReference.orderByChild("date").addValueEventListener(new ValueEventListener() {
+        databaseReference3.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    CheckIn checkIn = snapshot.getValue(CheckIn.class);
-                    if(checkIn != null) {
-                        //check if it matches monthkey
-                        if(getMonth(checkIn.getDate()).equals("0" +(monthkey+1)) && getYear(checkIn.getDate()).equals(calendarView.getYear() + "")) {
-                            if(checkIn.getName().equals(namekey)) {
+                    final Account account= snapshot.getValue(Account.class);
+                    if(account != null) {
+                      if(account.getWpNo().equals(wpNo)){
 
-                                String hours = (String) snapshot.child("hours").getValue();
-                                String checkoutTime = (String) snapshot.child("checkout").getValue();
-                                sqliteController.insertCheckInRecords(checkIn, hours, checkoutTime);
-                                System.out.println(checkIn + "checkin results");
-                            }
-                        }
+                          String name = account.getUserid();
+                          System.out.println("name: " + name);
+
+                          databaseReference.orderByChild("name").equalTo(name).addValueEventListener(new ValueEventListener() {
+                              @Override
+                              public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                  for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                      final CheckIn checkIn = snapshot.getValue(CheckIn.class);
+                                      if(checkIn != null) {
+                                          //check if it matches monthkey
+                                          if(getMonth(checkIn.getDate()).equals("0" +(monthkey+1)) && getYear(checkIn.getDate()).equals(calendarView.getYear() + "")) {
+
+                                              final Double hours = (Double) snapshot.child("hours").getValue();
+                                              final String hours2 = String.valueOf(hours);
+
+                                              databaseReference3.addValueEventListener(new ValueEventListener() {
+                                                  @Override
+                                                  public void onDataChange(DataSnapshot dataSnapshot) {
+                                                      for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                                          Account account = snapshot.getValue(Account.class);
+                                                          if (account != null) {
+                                                              if(account.getUserid().equals(checkIn.getName())) {
+//                                                                  sqliteController.insertCheckInRecords(checkIn, hours2, account);
+//                                                                  sqliteController.insertCheckInRecordsLocation(checkIn, hours2, account);
+                                                                  break;
+                                                              }
+                                                          }
+                                                      }
+                                                  }
+
+                                                  @Override
+                                                  public void onCancelled(DatabaseError databaseError) {
+
+                                                  }
+                                              });
+
+
+                                          }
+                                      }
+                                  }
+                              }
+
+                              @Override
+                              public void onCancelled(DatabaseError databaseError) {
+
+                              }
+                          });
+                      }
                     }
                 }
             }
@@ -202,62 +281,62 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
 
     }
 
-    private void insertSQLiteLocationTrackingForAll(final int monthkey){
+//    private void insertSQLiteLocationTrackingForAll(final int monthkey){
+//
+//        final SqliteController sqliteController = new SqliteController(this);
+//
+//
+//        databaseReference2.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//
+//                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+//                    User user = snapshot.getValue(User.class);
+//                    if(user != null) {
+//                        //check if it matches monthkey
+//                        if(getMonth(user.getDate()).equals("0" +(monthkey+1)) && getYear(user.getDate()).equals(calendarView.getYear() + "")) {
+//                            sqliteController.insertLocationTrackingRecords(user);
+//                            System.out.println(user + "user results");
+//                        }
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
+//    }
 
-        final SqliteController sqliteController = new SqliteController(this);
-
-
-        databaseReference2.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    User user = snapshot.getValue(User.class);
-                    if(user != null) {
-                        //check if it matches monthkey
-                        if(getMonth(user.getDate()).equals("0" +(monthkey+1)) && getYear(user.getDate()).equals(calendarView.getYear() + "")) {
-                            sqliteController.insertLocationTrackingRecords(user);
-                            System.out.println(user + "user results");
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    private void insertSQLiteLocationTrackingForUser(final int monthkey, final String namekey){
-
-        final SqliteController sqliteController = new SqliteController(this);
-
-        databaseReference2.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    User user = snapshot.getValue(User.class);
-                    if(user != null) {
-                        //check if it matches monthkey
-                        if(getMonth(user.getDate()).equals("0" +(monthkey+1)) && getYear(user.getDate()).equals(calendarView.getYear() + "")) {
-                            if(user.getName().equals(namekey)) {
-                                sqliteController.insertLocationTrackingRecords(user);
-                                System.out.println(user + "user results");
-                            }
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
+//    private void insertSQLiteLocationTrackingForUser(final int monthkey, final String namekey){
+//
+//        final SqliteController sqliteController = new SqliteController(this);
+//
+//        databaseReference2.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//
+//                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+//                    User user = snapshot.getValue(User.class);
+//                    if(user != null) {
+//                        //check if it matches monthkey
+//                        if(getMonth(user.getDate()).equals("0" +(monthkey+1)) && getYear(user.getDate()).equals(calendarView.getYear() + "")) {
+//                            if(user.getName().equals(namekey)) {
+//                                sqliteController.insertLocationTrackingRecords(user);
+//                                System.out.println(user + "user results");
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
+//    }
 
     private void getSQLiteValues(){
         SqliteController sqliteController = new SqliteController(this);
@@ -448,7 +527,7 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
 
                 setSQLite();
                 insertSQLiteCheckInForAll(monthkey);
-                insertSQLiteLocationTrackingForAll(monthkey);
+//                insertSQLiteLocationTrackingForAll(monthkey);
 
                 final Handler handler = new Handler();
                 new Thread(new Runnable() {
@@ -491,13 +570,12 @@ public class AdminCalendarActivity extends AppCompatActivity implements OnClickL
 
                 setSQLite();
 
-                String name = edt.getText().toString().toLowerCase();
-                String editedname = name.replace(" ", "");
-                System.out.println(editedname + "genUser name");
+                String wpno = edt.getText().toString().toLowerCase();
+                String editedwp = wpno.replace(" ", "");
 
                 Toast.makeText(AdminCalendarActivity.this, "Generating, please hold on", Toast.LENGTH_SHORT).show();
-                insertSQLiteCheckInForUser(monthkey, editedname);
-                insertSQLiteLocationTrackingForUser(monthkey, editedname);
+                insertSQLiteCheckInForUser(monthkey, editedwp);
+//                insertSQLiteLocationTrackingForUser(monthkey, editedname);
 
                 final Handler handler = new Handler();
                 new Thread(new Runnable() {

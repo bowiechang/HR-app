@@ -69,7 +69,6 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
             flag = getIntent().getExtras().getString("flag");
             checkin = getIntent().getExtras().getString("checkin");
             checkoutTime = getIntent().getExtras().getString("checkoutTime");
-            checkoutLocation = getIntent().getExtras().getString("checkoutLocation");
 
             init();
             readImage(date, name);
@@ -334,7 +333,7 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
         }
     }
 
-    private void downloadFile(final String uri, String uri2) {
+    private void downloadFile(final String uri, final String uri2) {
         if(isFileExists()){
             File folder1 = new File(Environment.getExternalStorageDirectory().getPath() + "/Download/checkin.jpg");
             folder1.delete();
@@ -350,31 +349,34 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
 
         DownloadManager mgr = (DownloadManager) DetailedCheckinActivity.this.getSystemService(Context.DOWNLOAD_SERVICE);
 
-        Uri downloadUri = Uri.parse(uri);
-        DownloadManager.Request request = new DownloadManager.Request(
-                downloadUri);
+        if(!uri.isEmpty()) {
+            Uri downloadUri = Uri.parse(uri);
+            DownloadManager.Request request = new DownloadManager.Request(
+                    downloadUri);
 
-        request.setAllowedNetworkTypes(
-                DownloadManager.Request.NETWORK_WIFI
-                        | DownloadManager.Request.NETWORK_MOBILE)
-                .setAllowedOverRoaming(false).setTitle("Downloading and exporting")
-                .setDescription("Ready in a bit")
-                .setDestinationInExternalPublicDir("/Download", "checkin.jpg");
+            request.setAllowedNetworkTypes(
+                    DownloadManager.Request.NETWORK_WIFI
+                            | DownloadManager.Request.NETWORK_MOBILE)
+                    .setAllowedOverRoaming(false).setTitle("Downloading and exporting")
+                    .setDescription("Ready in a bit")
+                    .setDestinationInExternalPublicDir("/Download", "checkin.jpg");
+            mgr.enqueue(request);
+        }
 
         //image 2
-        Uri downloadUri2 = Uri.parse(uri2);
-        DownloadManager.Request request2 = new DownloadManager.Request(
-                downloadUri2);
+        if(uri2 != null) {
+            Uri downloadUri2 = Uri.parse(uri2);
+            DownloadManager.Request request2 = new DownloadManager.Request(
+                    downloadUri2);
 
-        request2.setAllowedNetworkTypes(
-                DownloadManager.Request.NETWORK_WIFI
-                        | DownloadManager.Request.NETWORK_MOBILE)
-                .setAllowedOverRoaming(false).setTitle("Downloading and exporting")
-                .setDescription("Ready in a bit")
-                .setDestinationInExternalPublicDir("/Download", "checkout.jpg");
-
-        mgr.enqueue(request);
-        mgr.enqueue(request2);
+            request2.setAllowedNetworkTypes(
+                    DownloadManager.Request.NETWORK_WIFI
+                            | DownloadManager.Request.NETWORK_MOBILE)
+                    .setAllowedOverRoaming(false).setTitle("Downloading and exporting")
+                    .setDescription("Ready in a bit")
+                    .setDestinationInExternalPublicDir("/Download", "checkout.jpg");
+            mgr.enqueue(request2);
+        }
 
 
         //emailing
@@ -403,7 +405,9 @@ public class DetailedCheckinActivity extends AppCompatActivity implements OnClic
                             Uri path2 = Uri.fromFile(filelocation2);
 
                             uris.add(path);
-                            uris.add(path2);
+                            if(uri2 != null) {
+                                uris.add(path2);
+                            }
 
                             Intent emailIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
 // set the type to 'email'

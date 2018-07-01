@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <uses-feature android:name="android.hardware.camera2.full"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -33,6 +34,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+
         </activity>
 
         <receiver android:name=".LocationReceiver">
@@ -53,10 +55,12 @@
         </activity>
         <activity android:name=".AdminCalendarActivity">
         </activity>
-
         <activity android:name=".UserCalendarActivity">
         </activity>
         <activity android:name=".DetailedUserActivity">
+        </activity>
+        <activity android:name=".setupAccountActivity">
+
         </activity>
     </application>
 

@@ -60,7 +60,6 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -71,6 +70,8 @@ import java.util.Map;
 import br.com.safety.locationlistenerhelper.core.CurrentLocationListener;
 import br.com.safety.locationlistenerhelper.core.CurrentLocationReceiver;
 import br.com.safety.locationlistenerhelper.core.LocationTracker;
+
+import static java.util.Arrays.asList;
 
 public class AndroidCameraApi extends AppCompatActivity {
 
@@ -116,8 +117,10 @@ public class AndroidCameraApi extends AppCompatActivity {
     private String[] split = firebaseUser.getEmail().split("@");
     private String name = split[0];
     private String statuskey = "";
+    private String location;
 
     private DatabaseReference dbrefCheckIn = FirebaseDatabase.getInstance().getReference().child("CheckIns");
+    private DatabaseReference dbrefHours = FirebaseDatabase.getInstance().getReference().child("Hours");
 
     private ArrayList<String> arrayList = new ArrayList<>();
 
@@ -139,9 +142,13 @@ public class AndroidCameraApi extends AppCompatActivity {
         {
             String mc = intent.getStringExtra("mc");
             if(mc!=null) {
-                if (mc.equals("mc")) {
+                String key [] = mc.split(",");
+                String mckey = key[0];
+                location = key[1];
+
+                if (mckey.equals("mc")) {
                     mc2 = "mc";
-                    checkIn = new CheckIn(name, time, todayDate, "on MC", false, day);
+                    checkIn = new CheckIn(name, time, todayDate, "on MC", false, day, location);
 
                     takePictureButton.setText("Take picture of MC");
                     tvSmile.setText("Please take a clear image of the MC");
@@ -150,7 +157,15 @@ public class AndroidCameraApi extends AppCompatActivity {
 
                 } else {
                     mc2 = "no mc";
-                    checkIn = new CheckIn(name, time, todayDate, "working", false, day);
+                    if(c.get(Calendar.MINUTE) > 0){
+                        c.set(Calendar.MINUTE, 0);
+                        c.set(Calendar.HOUR, c.get(Calendar.HOUR) + 1);
+                        String time2 = timeformat.format(c.getTime());
+                        checkIn = new CheckIn(name, time2, todayDate, "working", false, day, location);
+                    }
+                    else{
+                        checkIn = new CheckIn(name, time, todayDate, "working", false, day, location);
+                    }
 
                     status = "CheckIn";
                 }
@@ -338,17 +353,19 @@ public class AndroidCameraApi extends AppCompatActivity {
                                             while (it.hasNext()) {
                                                 Map.Entry pair = (Map.Entry) it.next();
                                                 if(pair.getKey().equals(name)){
+                                                    System.out.println("a1");
                                                     final String key = pair.getValue().toString();
 
                                                     dbrefCheckIn.child(key).child("checkout").setValue(time);
                                                     stopTracker();
 
+
                                                     //calculate hour
-                                                    dbrefCheckIn.child(key).addValueEventListener(new ValueEventListener() {
+                                                    dbrefCheckIn.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                                                         @Override
                                                         public void onDataChange(DataSnapshot dataSnapshot) {
                                                             System.out.println("in here 1");
-                                                            CheckIn checkIn = dataSnapshot.getValue(CheckIn.class);
+                                                            final CheckIn checkIn = dataSnapshot.getValue(CheckIn.class);
 
                                                             System.out.println(checkIn.getCheckin() + "time in");
                                                             System.out.println(time + "time out");
@@ -360,15 +377,119 @@ public class AndroidCameraApi extends AppCompatActivity {
                                                                 Date Date2 = format.parse(time);
                                                                 long mills = Date2.getTime() - Date1.getTime();
                                                                 int Hours = (int) (mills/(1000 * 60 * 60));
-                                                                int Mins = (int) (mills/(1000*60)) % 60;
+                                                                double Mins = (int) (mills/(1000*60)) % 60;
 
-                                                                String diff = Hours + " hours and " + Mins +" minutes"; // updated value every1 second
+                                                                if(Mins > 40){
+                                                                    //round up to 1
+                                                                    Mins = 0;
+                                                                    Hours =+ 1;
+                                                                }
+                                                                else if(Mins >= 30 && Mins <= 40){
+                                                                    //round up to 45
+                                                                    Mins = 0.5;
+                                                                }
+                                                                else if(Mins >= 11 && Mins <= 30){
+                                                                    Mins = 0.5;
+                                                                }
+                                                                else if(Mins <= 10){
+                                                                    Mins = 0;
+                                                                }
+
+                                                                final double diff = Hours + Mins; // updated value every1 second
                                                                 System.out.println("time difference is : " + diff);
 
                                                                 dbrefCheckIn.child(key).child("hours").setValue(diff);
+
+                                                                final List<String> Weekdays = asList("Monday", "Tuesday", "Wednesday", "Thursday", "Friday");
+
+                                                                pushHour(new OnGetHourDataListener() {
+                                                                    @Override
+                                                                    public void onSuccess(ArrayList arrayList, HashMap hashMap) {
+
+                                                                        final String[] split = todayDate.split("-");
+                                                                        String newDate = split[1] + "-" + split[2];
+                                                                        if(arrayList.contains(newDate)){
+                                                                            System.out.println("called 1");
+                                                                            //edit and add on
+//                                                                            Iterator it = hashMap.entrySet().iterator();
+//                                                                            while (it.hasNext()) {
+//                                                                                Map.Entry pair = (Map.Entry) it.next();
+//                                                                                if(pair.getKey().equals(name)){
+//                                                                                    final String key = pair.getValue().toString();
+
+                                                                            Iterator it = hashMap.entrySet().iterator();
+                                                                            while(it.hasNext()){
+
+                                                                                Map.Entry pair = (Map.Entry) it.next();
+                                                                                if(pair.getKey().equals(newDate)){
+                                                                                    System.out.println("called 2");
+                                                                                    final String keyHour = pair.getValue().toString();
+                                                                                    dbrefHours.child(keyHour).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                                        @Override
+                                                                                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                                                                            Double normalHours = 0.0;
+                                                                                            Double otHours = 0.0;
+                                                                                            if(Weekdays.contains(checkIn.getDay())){
+                                                                                                if(diff >= 8){
+                                                                                                    normalHours = 8.0;
+                                                                                                    otHours = diff - 8.0;
+
+                                                                                                }
+                                                                                                else{
+                                                                                                    normalHours = diff;
+                                                                                                }
+                                                                                            }
+
+                                                                                            Hours hour = dataSnapshot.getValue(Hours.class);
+
+                                                                                            double normalHour = Double.valueOf(hour.getNormal());
+                                                                                            String finalnormalHour = String.valueOf(normalHour + normalHours);
+
+                                                                                            double otHour = Double.valueOf(hour.getOvertime());
+                                                                                            String finalotHour = String.valueOf(otHour + otHours);
+
+                                                                                            dbrefHours.child(keyHour).child("normal").setValue(finalnormalHour);
+                                                                                            dbrefHours.child(keyHour).child("overtime").setValue(finalotHour);
+
+                                                                                        }
+
+                                                                                        @Override
+                                                                                        public void onCancelled(DatabaseError databaseError) {
+
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                        else{
+                                                                            //push new
+
+                                                                            Double newnormalHours = 0.0;
+                                                                            Double newotHours = 0.0;
+                                                                            if(Weekdays.contains(checkIn.getDay())){
+                                                                                if(diff >= 8){
+                                                                                    newnormalHours = 8.0;
+                                                                                    newotHours = diff - 8.0;
+
+                                                                                }
+                                                                                else{
+                                                                                    newnormalHours = diff;
+                                                                                }
+                                                                            }
+
+                                                                            Hours hours = new Hours(name, newDate, String.valueOf(newnormalHours), String.valueOf(newotHours), "0");
+                                                                            dbrefHours.push().setValue(hours);
+                                                                        }
+                                                                    }
+                                                                });
+
                                                             } catch (ParseException e) {
                                                                 e.printStackTrace();
                                                             }
+
+
 
                                                         }
 
@@ -377,10 +498,8 @@ public class AndroidCameraApi extends AppCompatActivity {
 
                                                         }
                                                     });
-
                                                     break;
                                                 }
-
                                             }
                                         }
                                     }
@@ -395,8 +514,6 @@ public class AndroidCameraApi extends AppCompatActivity {
                             });
                         }
                     }
-
-
                 }
             };
             reader.setOnImageAvailableListener(readerListener, mBackgroundHandler);
@@ -436,7 +553,7 @@ public class AndroidCameraApi extends AppCompatActivity {
             Surface surface = new Surface(texture);
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureRequestBuilder.addTarget(surface);
-            cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
+            cameraDevice.createCaptureSession(asList(surface), new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                     //The camera is already closed
@@ -641,8 +758,7 @@ public class AndroidCameraApi extends AppCompatActivity {
 
     private void pushCheckin(final OnGetDataListener listener){
 
-        //check if it exists first then push
-        dbrefCheckIn.orderByChild("date").equalTo(todayDate).addValueEventListener(new ValueEventListener() {
+        dbrefCheckIn.orderByChild("date").equalTo(todayDate).addListenerForSingleValueEvent(new ValueEventListener() {
             ArrayList<String> arrayList = new ArrayList<String>();
             HashMap<String, String> hashMap = new HashMap<>();
 
@@ -662,6 +778,76 @@ public class AndroidCameraApi extends AppCompatActivity {
 
             }
         });
+
+//        //check if it exists first then push
+//        dbrefCheckIn.orderByChild("date").equalTo(todayDate).addValueEventListener(new ValueEventListener() {
+//            ArrayList<String> arrayList = new ArrayList<String>();
+//            HashMap<String, String> hashMap = new HashMap<>();
+//
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+//                    CheckIn checkIn = childDataSnapshot.getValue(CheckIn.class);
+//                    arrayList.add(checkIn.getName());
+//                    hashMap.put(checkIn.getName(), childDataSnapshot.getKey());
+//                    System.out.println("in pushCheckin");
+//                }
+//                listener.onSuccess(arrayList, hashMap);
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
+    }
+
+    public interface OnGetHourDataListener {
+        //make new interface for call back
+        void onSuccess(ArrayList arrayList, HashMap hashMap);
+    }
+
+    private void pushHour(final OnGetHourDataListener listener){
+
+        dbrefHours.orderByChild("name").equalTo(name).addListenerForSingleValueEvent(new ValueEventListener() {
+            ArrayList<String> arrayList = new ArrayList<String>();
+            HashMap<String, String> hashMap = new HashMap<>();
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+                    Hours hour = childDataSnapshot.getValue(Hours.class);
+                    arrayList.add(hour.getMonth());
+                    hashMap.put(hour.getMonth(), childDataSnapshot.getKey());
+                }
+                listener.onSuccess(arrayList, hashMap);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+//        dbrefHours.orderByChild("name").equalTo(name).addValueEventListener(new ValueEventListener() {
+//            ArrayList<String> arrayList = new ArrayList<String>();
+//            HashMap<String, String> hashMap = new HashMap<>();
+//
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+//                    Hours hour = childDataSnapshot.getValue(Hours.class);
+//                    arrayList.add(hour.getMonth());
+//                    hashMap.put(hour.getMonth(), childDataSnapshot.getKey());
+//                }
+//                listener.onSuccess(arrayList, hashMap);
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
     }
 
 }

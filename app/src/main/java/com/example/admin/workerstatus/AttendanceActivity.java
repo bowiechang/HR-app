@@ -17,9 +17,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -58,6 +60,7 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
     private String statuskey = "checkin";
 
     private FloatingActionButton fab;
+    private Spinner spnrLocation;
 
     private DatabaseReference dbrefCheckIn = FirebaseDatabase.getInstance().getReference().child("LocationTrackings");
 
@@ -97,13 +100,15 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
 
         if(v.getId() == R.id.btnAttendance) {
             Log.d("attendance", "reached");
+            String location = spnrLocation.getSelectedItem().toString();
             Intent intent = new Intent(this, AndroidCameraApi.class);
-            intent.putExtra("mc", "no mc");
+            intent.putExtra("mc", "no mc," + location);
             startActivity(intent);
         }
         else if(v.getId() == R.id.btnMc){
+            String location = spnrLocation.getSelectedItem().toString();
             Intent intent = new Intent(this, AndroidCameraApi.class);
-            intent.putExtra("mc", "mc");
+            intent.putExtra("mc", "mc," + location);
             startActivity(intent);
         }
 
@@ -271,6 +276,10 @@ public class AttendanceActivity extends AppCompatActivity implements OnClickList
         final Button btnAttendance = (Button) findViewById(R.id.btnAttendance);
         final Button btnMc = (Button) findViewById(R.id.btnMc);
         final Button btnCheckOut = (Button) findViewById(R.id.btnCheckout);
+        spnrLocation= (Spinner) findViewById(R.id.spnrLocation);
+        String[] items = new String[]{"Bishan", "Ang Mo Kio", "Toa Payoh", "Woodlands", "Sembawang", "Thomson", "Tuas", "Changi"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        spnrLocation.setAdapter(adapter);
         fab = (FloatingActionButton)findViewById(R.id.fab);
         btnAttendance.setOnClickListener(this);
         btnMc.setOnClickListener(this);

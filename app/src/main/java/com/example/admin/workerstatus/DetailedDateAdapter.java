@@ -84,38 +84,15 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
                         if(checkIn.getDate().equals(date) && checkIn.getName().equals(name)){
 
                             String checkout = (String) snapshot.child("checkout").getValue();
-                            String hours = (String) snapshot.child("hours").getValue();
+                            Double hours = (Double) snapshot.child("hours").getValue();
+
+                            holder.tvLocation.setText(String.format("Checkin Location: %s", checkIn.getLocation()));
 
                             if(checkout!=null && hours !=null){
                                 holder.tvCheckout.setText(String.format("Clock out: %s", checkout));
                                 holder.tvHours.setText(String.format("Hours: %s", hours));
 
                                 final String checkoutTime = checkout;
-
-                                final DatabaseReference databaseReference3 = FirebaseDatabase.getInstance().getReference().child("LocationTrackings");
-                                databaseReference3.addValueEventListener(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                        System.out.println("checkoutTime: " + checkoutTime);
-                                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                            User user = snapshot.getValue(User.class);
-                                            if(user != null) {
-
-                                                if(user.getDate().equals(date) && user.getName().equals(name) && user.getTime().equals(checkoutTime)){
-                                                    holder.tvCheckoutLocation.setText(String.format("Checkin Location: %s", user.getAddress()));
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(DatabaseError databaseError) {
-
-                                    }
-                                });
-
-
                             }
                             break;
                         }
@@ -128,29 +105,6 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
 
             }
         });
-
-        final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("LocationTrackings");
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    User user = snapshot.getValue(User.class);
-                    if(user != null) {
-                        if(user.getDate().equals(date) && user.getName().equals(name) && user.getTime().equals(checkin)){
-                            holder.tvLocation.setText(String.format("Checkin Location: %s", user.getAddress()));
-                        }
-
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-
 
         //reading of image
         final StorageReference pathref = storageReference.child(list.get(position).getDate() +"/" + "checkin-" + list.get(position).getName()+".jpg");
@@ -206,7 +160,6 @@ public class DetailedDateAdapter extends RecyclerView.Adapter<DetailedDateHolder
                 extras.putString("flag", list.get(position).getFlag().toString());
                 extras.putString("status", list.get(position).getMc());
                 extras.putString("checkoutTime", holder.tvCheckout.getText().toString());
-                extras.putString("checkoutLocation", holder.tvCheckoutLocation.getText().toString());
                 i.putExtras(extras);
                 context.startActivity(i);
             }
